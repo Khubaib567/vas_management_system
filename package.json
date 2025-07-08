@@ -1,5 +1,5 @@
 {
-  "name": "sql",
+  "name": "cms",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -21,10 +21,7 @@
     "crypto": "^1.0.1",
     "express-graphql": "^0.12.0",
     "express-rate-limit": "^7.5.0",
-    "graphql": "^16.11.0",
     "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "rate-limit-redis": "^4.2.0",
-    "redis": "^4.7.0"
+    "jsonwebtoken": "^9.0.2"
   }
 }

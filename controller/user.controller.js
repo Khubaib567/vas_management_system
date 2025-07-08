@@ -47,8 +47,8 @@ exports.create = async (req, res) => {
 
 // RETRIEVE ALL USERS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const users = await User.findAll({ include: ["projects"] });
   try {
+    const users = await User.findAll({ include: ["projects"] });
     await res.send(users);
   } catch (err) {
     res.status(500).send({
@@ -61,12 +61,12 @@ exports.findAll = async (req, res) => {
 // FIND A SINGLE USER WITH AN ID
 exports.findOne = async (req, res) => {
   const id = req.params.id;
-  const user = await User.findByPk(id, { include: ["projects"] });
   try {
+    const user = await User.findByPk(id, { include: ["projects"] });
     if(user){
      await res.send(user)
     }
-    } else {
+     else {
       res.status(404).send({
         message: `Cannot find User with id=${id}.`
       });
@@ -76,6 +76,7 @@ exports.findOne = async (req, res) => {
       message: "Error retrieving User with id=" + id
     });
   }
+};
   
 // UPDATE A USER BY THE ID IN THE REQUEST
 exports.update = async (req, res) => {
@@ -144,5 +145,4 @@ exports.findAllUpdated = async (req, res) => {
       message: err.message || "Some error occurred while retrieving Users."
     });
   }
-};
-
+}
