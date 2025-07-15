@@ -29,7 +29,6 @@ const authRole =  () => {
     // GET THE TOKEN
     const header = req.headers['authorization']
     const token = header && header.split(' ')[1]
-    console.log(token)
     // DECODED THE JWT TOKEN
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
     // console.log(decoded)  

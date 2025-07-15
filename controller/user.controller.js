@@ -7,7 +7,7 @@ const Op = db.Sequelize.Op;
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
-  const {name , password , email , updated } = req.body;
+  const {name , password , email  } = req.body;
   
   try {
     if (!req.body) {
@@ -19,8 +19,7 @@ exports.create = async (req, res) => {
     const obj = {
       name: name,
       password: password,
-      email: email,
-      updated: updated ? updated : false,
+      email: email
     };
 
 
@@ -127,7 +126,7 @@ exports.delete = async (req, res) => {
 exports.deleteAll = async (req, res) => {
   try {
     const nums = await User.destroy({ where: {}, truncate: false });
-    res.send({ message: `${nums} Users were deleted successfully!` });
+    res.send({ message: "All Users were deleted successfully!"});
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while removing all Users."

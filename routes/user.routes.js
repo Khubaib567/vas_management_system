@@ -5,7 +5,7 @@ module.exports = app => {
     // APPLY AUTHORIZATION AS MIDDLEWARE
     const {authRole} = require("../utils/auth.config.js");
     // CONFIG GRAPHQL FOR BETTER RESPONSE RESULTS
-    const { graphqlHTTP } = require('express-graphql');
+    // const { graphqlHTTP } = require('express-graphql');
 
     var router = require("express").Router();
 
@@ -25,9 +25,5 @@ module.exports = app => {
     router.delete("/:id", users.delete);
     // DELETE ALL users
     router.delete("/", users.deleteAll);
-    // app.use('/api/user', graphqlHTTP({
-    //     schema : router,
-    //     graphiql : true
-    // }));
     app.use('/api/user' , router);
 };
