@@ -1,14 +1,25 @@
-module.exports = (sequelize, Sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const Project = sequelize.define("project", {
       project_title: {
-        type: Sequelize.STRING
+        type: DataTypes.STRING,
+        allowNull: false
       },
-      project_created: {
-      type: Sequelize.STRING
+      project_created_by: {
+      type: DataTypes.STRING,
+      allowNull: false
       },
       updated: {
-        type: Sequelize.BOOLEAN
-      }
+        type: DataTypes.BOOLEAN,
+      },
+      createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: new Date(),
+      
+      },
+     updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: new Date(),
+    }
   })
     // Project.associate = models => {
     //   User.belongsTo(models.Project);

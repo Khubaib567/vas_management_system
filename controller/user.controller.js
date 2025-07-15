@@ -1,13 +1,12 @@
 const db = require("../config/db.config");
 const {generateToken,removeToken} = require('../utils/json.token');
 const User = db.users;
-const Project = db.projects;
-const Op = db.Sequelize.Op;
+
 
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
-  const {name , password , email  } = req.body;
+  const {name , password , email , role , updated } = req.body;
   
   try {
     if (!req.body) {
@@ -19,7 +18,9 @@ exports.create = async (req, res) => {
     const obj = {
       name: name,
       password: password,
-      email: email
+      email: email,
+      role : role ? role : "STUDENT" ,
+      updated : updated ? updated : false
     };
 
 

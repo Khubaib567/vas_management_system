@@ -1,21 +1,22 @@
+const users = require("../controller/user.controller.js");
+// APPLY AUTHENTICATION AS MIDDLEWARE
+const {auth} = require("../utils/auth.config.js")
+// APPLY AUTHORIZATION AS MIDDLEWARE
+const {authRole} = require("../utils/auth.config.js");
+// CONFIG GRAPHQL FOR BETTER RESPONSE RESULTS
+// const { graphqlHTTP } = require('express-graphql');
+
+let router = require("express").Router();
+
+
 module.exports = app => {
-    const users = require("../controller/user.controller.js");
-    // APPLY AUTHENTICATION AS MIDDLEWARE
-    const {auth} = require("../utils/auth.config.js")
-    // APPLY AUTHORIZATION AS MIDDLEWARE
-    const {authRole} = require("../utils/auth.config.js");
-    // CONFIG GRAPHQL FOR BETTER RESPONSE RESULTS
-    // const { graphqlHTTP } = require('express-graphql');
-
-    var router = require("express").Router();
-
     // CREATE A NEW USER
     router.post("/", users.create);
     // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
-    router.all('/', auth() , authRole())
+    router.use(auth() , authRole())
     // RETRIEVE ALL USERS
     router.get("/" , users.findAll);
-    // RETRIEVE ALL PUBLISHED USERS
+    // RETRIEVE ALL PUBLISHED USERS'S PROJECTS
     router.get("/updated" , users.findAllUpdated);
     // RETRIEVE A SINGLE USER WITH ID
     router.get("/:id", users.findOne);

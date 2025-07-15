@@ -5,27 +5,28 @@ const Op = db.Sequelize.Op;
 // Create and Save a new User
 exports.create = async (req, res) => {
     // Check the body of the request is null or not
-    
+    const {project_title , project_created_by , updated } = req.body
     try {
-      if (!req.body.project_title) {
+      if (!req.body) {
         return res.status(400).send({ message: "Content can not be empty!" });
       }
   
-      // Create a Project object
+      // CREATE A PROJECT OBJECT.
       const project = {
-        project_title: req.body.project_title,
-        project_created: req.body.project_created,
-        updated: req.body.updated ? req.body.updated : false,
+        project_title: project_title,
+        project_created_by: project_created_by,
+        updated: updated ? updated : false
       };
   
-      // Fetch users with their projects
+      // FETCH USER WITH PROJECT ARRIBUTE.
       const users = await User.findAll({ include: ["projects"] });
   
-      const user = users.find((obj) => obj.user_name === project.project_created);
-  
-      // Create project in the database
+      const user = users.find((obj) => obj.name === project.project_created_by);
+      console.log(user)
+      // CREATE A PROJECT INSTANCE.
       const newProject = await Project.create(project);
   
+      // SET THE PROJECT INSTANCE WITH FOREIGN KEY BASED ON USER'ID
       if (user) {
         await user.setProjects(newProject);
       }
