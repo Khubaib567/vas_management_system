@@ -24,8 +24,8 @@ db.sequelize = sequelize;
 db.users = require("../model/user.model.js")(sequelize, Sequelize);
 db.projects = require('../model/project.model.js')(sequelize, Sequelize);
 
-db.users.hasMany(db.projects,{ onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-db.projects.belongsTo(db.users,{ onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+db.users.hasMany(db.projects,{onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+db.projects.belongsTo(db.users,{onDelete: 'CASCADE', onUpdate: 'CASCADE' })
 
 
 // CHECK THE DB CONNECTION.

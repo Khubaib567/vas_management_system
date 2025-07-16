@@ -25,7 +25,10 @@ exports.create = async (req, res) => {
       const users = await User.findAll({ include: ["projects"] });
   
       const user = users.find((obj) => obj.name === project.project_created_by);
-      console.log(user)
+
+      // UPDATE THE USER UPDATE ATTRIBUTE 
+      const result = await User.update({ updated: project.updated }, { where: { id: user.id } });
+      if(result) console.log("User 'Updated' column has been updated!")
 
       // CREATE A PROJECT INSTANCE.
       const newProject = await Project.create(project);
@@ -34,22 +37,9 @@ exports.create = async (req, res) => {
       if (user) {
         await user.setProjects(newProject);
       }
-      
-      
-     
-      // UPDATE THE USER RECORD 
-      // const updatedUser = await User.update(updated, { where: { id: user.id } });
-      // if(updatedUser ===1){
-      //  console.log({ message: "User was updated successfully." });
-      // }else {
-      //   console.log({
-      //     message: `Cannot update User with id=${user.id}. Maybe user was not found or req.body is empty!`
-      //   });
-      // }
-      
-     
   
       res.status(200).send(newProject);
+      
     } catch (err) {
       res.status(500).send({
         message: err.message || "Some error occurred while creating the Project.",

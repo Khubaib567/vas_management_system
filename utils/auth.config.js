@@ -33,6 +33,7 @@ const authRole =  () => {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
     // console.log(decoded)  
     const userId = decoded.id 
+    console.log(userId)
     // console.log(userId)
     const user = await User.findByPk(userId, { include: ["projects"] });
     // console.log(user.role)
