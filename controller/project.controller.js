@@ -2,11 +2,14 @@ const db = require("../config/db.config");
 const Project = db.projects;
 const User = db.users;
 const Op = db.Sequelize.Op;
-// Create and Save a new User
+
+// CREATE USER
 exports.create = async (req, res) => {
-    // Check the body of the request is null or not
+   
     const {project_title , project_created_by , updated } = req.body
     try {
+      // CHECK THE BODY OF REQ. IS NULL OR NOT
+      
       if (!req.body) {
         return res.status(400).send({ message: "Content can not be empty!" });
       }
@@ -23,15 +26,30 @@ exports.create = async (req, res) => {
   
       const user = users.find((obj) => obj.name === project.project_created_by);
       console.log(user)
+
       // CREATE A PROJECT INSTANCE.
       const newProject = await Project.create(project);
-  
-      // SET THE PROJECT INSTANCE WITH FOREIGN KEY BASED ON USER'ID
+      
+       // SET THE PROJECT INSTANCE WITH FOREIGN KEY BASED ON USER'ID
       if (user) {
         await user.setProjects(newProject);
       }
+      
+      
+     
+      // UPDATE THE USER RECORD 
+      // const updatedUser = await User.update(updated, { where: { id: user.id } });
+      // if(updatedUser ===1){
+      //  console.log({ message: "User was updated successfully." });
+      // }else {
+      //   console.log({
+      //     message: `Cannot update User with id=${user.id}. Maybe user was not found or req.body is empty!`
+      //   });
+      // }
+      
+     
   
-      res.send(newProject);
+      res.status(200).send(newProject);
     } catch (err) {
       res.status(500).send({
         message: err.message || "Some error occurred while creating the Project.",
@@ -40,14 +58,21 @@ exports.create = async (req, res) => {
 
 }
   
-// Retrieve all projects from the database.
+// RETRIEVE ALL PROJECTS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
   try {
     const project_title = req.query.project_title;
+    
     const condition = project_title ? { project_title: { [Op.like]: `%${project_title}%` } } : null;
 
     const data = await Project.findAll({ where: condition });
-    res.send(data);
+
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+     return res.status(404).json({ message: 'No data found' });
+     }
+
+    res.status(200).send(data)
+
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Users."
@@ -55,19 +80,20 @@ exports.findAll = async (req, res) => {
   }
 };
 
-// Find a single project with a project_id
+// FIND A SINGLE PROJECT WITH A PROJECT_ID.
 exports.findOne = async (req, res) => {
+  const id = req.params.id;
+  
   try {
-    const id = req.params.id;
+    
     const data = await Project.findByPk(id);
 
-    if (data) {
-      res.send(data);
-    } else {
-      res.status(404).send({
-        message: `Cannot find Project with project_id=${id}.`
-      });
+    if (!data || Array.isArray(data) && data.length === 0) {
+      return res.status(404).json({ message: 'No data found' });
     }
+
+    res.status(200).send(data)
+    
   } catch (err) {
     res.status(500).send({
       message: "Error retrieving Project with project_id=" + id
@@ -76,19 +102,23 @@ exports.findOne = async (req, res) => {
   
 };
 
-// Update a User by the user_id in the request
+// UPDATE A USER BY THE USER_ID IN THE REQUEST.
 exports.update = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const num = await Project.update(req.body, { where: { id: id } });
 
-    if (num == 1) {
-      res.send({ message: "Project was updated successfully." });
-    } else {
-      res.send({
-        message: `Cannot update Project with id=${id}. Maybe project was not found or req.body is empty!`
-      });
+  const id = req.params.id;
+  
+  try {
+
+    const result = await Project.update(req.body, { where: { id: id } });
+    console.log(result)
+
+    // IF NO ROWS ARE UPDDATED.
+    if (result[0] === 0) {
+      return res.status(400).json({ message: "Requested content can't be updated" });
     }
+
+    res.status(200).send({ message: "Project was updated successfully!" });
+    
   } catch (err) {
     res.status(500).send({
       message: "Error updating project with id=" + id
@@ -97,44 +127,53 @@ exports.update = async (req, res) => {
   
 };
 
-// Delete a User with the specified user_id in the request
+// DELETE A USER WITH THE SPECIFIED USER_ID IN THE REQUEST
 exports.delete = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const num = await Project.destroy({ where: { id: id } });
+  const id = req.params.id;
 
-    if (num === 1) {
-      res.send({ message: "Project was deleted successfully!" });
-    } else {
-      res.send({
-        message: `Cannot delete project with id=${id}. Maybe project was not found!`
-      });
-    }
+  try {
+    
+    await Project.destroy({ where: { id: id } });
+    
+    res.status(200).send({ message: "Project was deleted successfully!" });
   } catch (err) {
+    
     res.status(500).send({
       message: "Could not delete project with id=" + id
     });
   }
 };
 
-// Delete all Users from the database.
+// DELETE ALL USERS FROM THE DATABASE.
 exports.deleteAll = async (req, res) => {
   try {
-    const nums = await Project.destroy({ where: {}, truncate: false });
-    res.send({ message: `${nums} Projects were deleted successfully!` });
+    
+    await Project.destroy({ where: {}, truncate: false });
+    
+    res.status(200).send({
+      message : "All Projects has been deleted Successfully!"
+    })
   } catch (err) {
+    
     res.status(500).send({
       message: err.message || "Some error occurred while removing all Projects."
+    
     });
   }
   
 };
 
-// Find all published Projects
+// FIND ALL PUBLISHED PROJECTS
 exports.findAllUpdated = async (req, res) => {
+  const data = await Project.findAll({ where: { updated: true } });
+
   try {
-    const data = await Project.findAll({ where: { updated: true } });
-    res.send(data);
+     
+    if (!data || Array.isArray(data) && data.length === 0) {
+      return res.status(404).json({ message: 'No data found' });
+    }
+    
+    res.send(data)
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Projects."

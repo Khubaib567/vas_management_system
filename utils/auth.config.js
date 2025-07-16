@@ -37,10 +37,7 @@ const authRole =  () => {
     const user = await User.findByPk(userId, { include: ["projects"] });
     // console.log(user.role)
     // CHECK THE USER ROLE
-    if (user.role !== process.env.ADMIN) {
-        res.status(401)
-        return res.send({ message : 'Not allowed!' })
-    }
+    if (!user || user.role !== process.env.ADMIN) return res.status(401).send({ message : 'Not allowed!' }) 
     next()
     }
 }

@@ -29,15 +29,16 @@ exports.create = async (req, res) => {
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
     const user = await User.findOne({ where: { id: data.id } });
-    if (!user) {
+    
+    if (!user || Array.isArray(user) && user.length === 0) {
        return res.status(404).json({ message: "User not found after creation" });
     }
 
     // GENERATE TOKEN 
     const token = await generateToken(res, user.id);
     // UPDATE THE USER WITH INSERT THE TOKEN
-    const user_with_jwt = await user.update({ token });
-    res.send({ user_with_jwt });
+    const result = await user.update({ token });
+    res.send({ result });
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while creating the User."
@@ -47,9 +48,16 @@ exports.create = async (req, res) => {
 
 // RETRIEVE ALL USERS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
+  const data = await User.findAll({ include: ["projects"] });
+
   try {
-    const users = await User.findAll({ include: ["projects"] });
-    await res.send(users);
+    
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+     return res.status(404).json({ message: 'No data found' });
+     }
+
+    res.status(200).send(data)
+
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Users."
@@ -60,17 +68,19 @@ exports.findAll = async (req, res) => {
 
 // FIND A SINGLE USER WITH AN ID
 exports.findOne = async (req, res) => {
+  
   const id = req.params.id;
+  
   try {
-    const user = await User.findByPk(id, { include: ["projects"] });
-    if(user){
-     await res.send(user)
+
+    const data = await User.findByPk(id, { include: ["projects"] });
+    
+    if (!data || Array.isArray(data) && data.length === 0) {
+      return res.status(404).json({ message: 'No data found' });
     }
-     else {
-      res.status(404).send({
-        message: `Cannot find User with id=${id}.`
-      });
-    }
+
+    res.status(200).send(data)
+
   } catch (err) {
     res.status(500).send({
       message: "Error retrieving User with id=" + id
@@ -80,20 +90,20 @@ exports.findOne = async (req, res) => {
   
 // UPDATE A USER BY THE ID IN THE REQUEST
 exports.update = async (req, res) => {
+
+  const id = req.params.id;
+
   try {
-    const id = req.params.id;
-    const [num] = await User.update(req.body, { where: { id: id } });
-    // HERE UPDATE RESULT GIVE TWO VALUES: 
-    // 0 MEANS NOT UPDATED THE OBJECT BODY.
-    // 1 MEANS UPDATED THE OBJECT BODY.
     
-    if (num === 1) {
-      res.send({ message: "User was updated successfully." });
-    } else {
-      res.send({
-        message: `Cannot update User with id=${id}. Maybe user was not found or req.body is empty!`
-      });
+    const result = await User.update(req.body, { where: { id: id } });
+    
+    // IF NO ROWS ARE UPDDATED.
+    if (result[0] === 0) {
+      return res.status(400).json({ message: "Requested content can't be updated" });
     }
+    
+    res.status(200).send({ message: "User was updated successfully!" });
+    
   } catch (err) {
     res.status(500).send({
       message: "Error updating user with id=" + id
@@ -103,22 +113,21 @@ exports.update = async (req, res) => {
 };
 // DELETE A USER WITH THE SPECIFIED ID IN THE REQUEST
 exports.delete = async (req, res) => {
+
+  const id = req.params.id;
+
   try {
-    const id = req.params.id;
-    const num = await User.destroy({ where: { id: id } });
+    await User.destroy({ where: { id: id } });
 
     await removeToken(req, res);
 
-    if (num === 1) {
-      res.send({ message: "User was deleted successfully!" });
-    } else {
-      res.send({
-        message: `Cannot delete user with id=${id}. Maybe User was not found!`
-      });
+    res.status(200).send({ message: "User was deleted successfully!" });
     }
-  } catch (err) {
+  catch (err) {
+    
     res.status(500).send({
       message: "Could not delete user with id=" + id
+    
     });
   }
  
@@ -126,20 +135,34 @@ exports.delete = async (req, res) => {
 // DELETE ALL USERS FROM THE DATABASE.
 exports.deleteAll = async (req, res) => {
   try {
-    const nums = await User.destroy({ where: {}, truncate: false });
-    res.send({ message: "All Users were deleted successfully!"});
+    await User.destroy({ where: {}, truncate: false });
+    
+    res.status(200).send({
+      message : "All Projects has been deleted Successfully!"
+    
+    })
   } catch (err) {
+    
     res.status(500).send({
       message: err.message || "Some error occurred while removing all Users."
+    
     });
   }
   
 };
 // FIND ALL PUBLISHED USERS
 exports.findAllUpdated = async (req, res) => {
+  
+  const data = await User.findAll({ where: { updated: true } });
+
   try {
-    const data = await User.findAll({ where: { updated: true } });
+    
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      return res.status(404).json({ message: 'No data found' });
+    }
+
     res.send(data);
+
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Users."
