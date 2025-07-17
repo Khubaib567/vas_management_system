@@ -8,7 +8,7 @@ const {authRole} = require("../utils/auth.config.js");
 
 module.exports = app => {
     // APPLY AUTHENTICATION & ATHORIZATION TO ALL ROUTES
-    // router.use(auth() , authRole())
+    router.use(auth() , authRole())
     // CREATE A NEW PROJECT
     router.post("/", projects.create);
     // RETRIEVE ALL PROJECTS
