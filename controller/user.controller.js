@@ -1,6 +1,7 @@
 const db = require("../config/db.config");
 const {generateToken,removeToken} = require('../utils/json.token');
 const User = db.users;
+const Project = db.projects
 
 
 // CREATE AND SAVE A NEW USER
@@ -48,7 +49,7 @@ exports.create = async (req, res) => {
 
 // RETRIEVE ALL USERS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const data = await User.findAll({ include: ["projects"] });
+  const data = await User.findAll({ include: Project });
 
   try {
     
@@ -73,7 +74,7 @@ exports.findOne = async (req, res) => {
   
   try {
 
-    const data = await User.findByPk(id, { include: ["projects"] });
+    const data = await User.findByPk(id, { include: Project });
     
     if (!data || Array.isArray(data) && data.length === 0) {
       return res.status(404).json({ message: 'No data found' });

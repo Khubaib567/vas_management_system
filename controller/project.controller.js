@@ -22,7 +22,7 @@ exports.create = async (req, res) => {
       };
   
       // FETCH USER WITH PROJECT ARRIBUTE.
-      const users = await User.findAll({ include: ["projects"] });
+      const users = await User.findAll({ include: Project });
   
       const user = users.find((obj) => obj.name === project.project_created_by);
 
@@ -76,7 +76,7 @@ exports.findOne = async (req, res) => {
   
   try {
     
-    const data = await Project.findByPk(id);
+    const data = await Project.findByPk(id , { include : User });
 
     if (!data || Array.isArray(data) && data.length === 0) {
       return res.status(404).json({ message: 'No data found' });
