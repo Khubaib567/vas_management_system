@@ -50,25 +50,38 @@ exports.create = async (req, res) => {
   
 // RETRIEVE ALL PROJECTS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
+  const { project_title, page = 1, limit = 10 } = req.query;
+  const offset = (page - 1) * limit;
+
+  const condition = project_title
+    ? { project_title: { [Op.like]: `%${project_title}%` } }
+    : {};
+  
   try {
-    const project_title = req.query.project_title;
-    
-    const condition = project_title ? { project_title: { [Op.like]: `%${project_title}%` } } : null;
 
-    const data = await Project.findAll({ where: condition });
+  const data = await Project.findAndCountAll({
+    where: condition,
+    limit: parseInt(limit),
+    offset: parseInt(offset)
+  });
 
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-     return res.status(404).json({ message: 'No data found' });
-     }
-
-    res.status(200).send(data)
-
-  } catch (err) {
-    res.status(500).send({
-      message: err.message || "Some error occurred while retrieving Users."
-    });
+  if (!data || data.count === 0) {
+    return res.status(404).json({ message: 'No data found' });
   }
+
+  res.status(200).json({
+    totalItems: data.count,
+    totalPages: Math.ceil(data.count / limit),
+    currentPage: parseInt(page),
+    projects: data.rows
+  });
+
+} catch (err) {
+  res.status(500).json({
+    message: err.message || "Some error occurred while retrieving Projects."
+  });
 };
+}
 
 // FIND A SINGLE PROJECT WITH A PROJECT_ID.
 exports.findOne = async (req, res) => {

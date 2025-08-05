@@ -4,6 +4,7 @@ const User = db.users;
 const Project = db.projects
 
 
+
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
@@ -49,21 +50,33 @@ exports.create = async (req, res) => {
 
 // RETRIEVE ALL USERS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const data = await User.findAll({ include: Project });
+  const { page = 1, limit = 10 } = req.query; // Default: page 1, limit 10
+  const offset = (page - 1) * limit;
 
   try {
-    
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-     return res.status(404).json({ message: 'No data found' });
-     }
+      const data = await User.findAndCountAll({
+        include: Project,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      });
 
-    res.status(200).send(data)
+      if (!data || data.count === 0) {
+        return res.status(404).json({ message: 'No data found' });
+      }
+
+      res.status(200).json({
+        totalItems: data.count,
+        totalPages: Math.ceil(data.count / limit),
+        currentPage: parseInt(page),
+        users: data.rows
+      });
 
   } catch (err) {
-    res.status(500).send({
-      message: err.message || "Some error occurred while retrieving Users."
-    });
-  }
+      res.status(500).json({
+        message: err.message || "Some error occurred while retrieving Users."
+      });
+    }
+
   
 };
 
