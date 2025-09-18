@@ -9,6 +9,7 @@ const logger = require("morgan");
 const app = express();
 const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
+// PROTECT APP FROM MANY ATTACKS
 
 // CONFIG HELMET TO APPLY DEFAULT HEADER TO AN APP
 app.use(helmet())
