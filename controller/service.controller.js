@@ -6,7 +6,7 @@ const Op = db.Sequelize.Op;
 // CREATE USER
 exports.create = async (req, res) => {
    
-    const {service , subscriber , subscribe } = req.body
+    const {service , msisdn , subscribe } = req.body
     try {
       // CHECK THE BODY OF REQ. IS NULL OR NOT
       
@@ -17,7 +17,7 @@ exports.create = async (req, res) => {
       // CREATE A PROJECT OBJECT.
       const serviceObj = {
         service: service,
-        subscriber: subscriber,
+        msisdn : msisdn ,
         subscribe: subscribe ? subscribe : false
       };
       // console.log(serviceObj.subscriber)
@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
       // FETCH USER WITH PROJECT ARRIBUTE.
       const users = await User.findAll({ include: Service });
   
-      const user = users.find((obj) => obj.name === serviceObj.subscriber);
+      const user = users.find((obj) => obj.msisdn === serviceObj.msisdn);
       // console.log(user)
 
       // UPDATE THE USER UPDATE ATTRIBUTE 
@@ -115,8 +115,13 @@ exports.update = async (req, res) => {
   
   try {
 
+    const { msisdn , subscribe} = req.body
+
     const result = await Service.update(req.body, { where: { id: id } });
-    console.log(result)
+    // console.log(result)
+
+    const userUpdated = await User.update({ subscribe: subscribe }, { where: { msisdn : msisdn } });
+    if(userUpdated) console.log("User 'Serice' column has been updated!")
 
     // IF NO ROWS ARE UPDDATED.
     if (result[0] === 0) {

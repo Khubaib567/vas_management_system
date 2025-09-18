@@ -8,7 +8,7 @@ const Service = db.services
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
-  const {name , password , email , role , updated } = req.body;
+  const {name , msisdn , role , subscribe } = req.body;
   
   try {
     if (!req.body) {
@@ -19,10 +19,9 @@ exports.create = async (req, res) => {
     // CREATE A USER OBJECT
     const obj = {
       name: name,
-      password: password,
-      email: email,
+      msisdn : msisdn ,
       role : role ? role : "STUDENT" ,
-      updated : updated ? updated : false
+      subscribe : subscribe ? subscribe : false
     };
 
 

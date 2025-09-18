@@ -1,10 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
-  const Project = sequelize.define("service", {
+  const Service = sequelize.define("service", {
       service: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      subscriber: {
+      msisdn: {
       type: DataTypes.STRING,
       allowNull: false
       },
@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     // Project.associate = models => {
     //   User.belongsTo(models.Project);
     // }
-    return Project;
+    return Service;
   };
   
   
