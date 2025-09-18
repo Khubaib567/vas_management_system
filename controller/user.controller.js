@@ -1,7 +1,7 @@
 const db = require("../config/db.config");
 const {generateToken,removeToken} = require('../utils/json.token');
 const User = db.users;
-const Project = db.projects
+const Service = db.services
 
 
 
@@ -55,7 +55,7 @@ exports.findAll = async (req, res) => {
 
   try {
       const data = await User.findAndCountAll({
-        include: Project,
+        include: Service,
         limit: parseInt(limit),
         offset: parseInt(offset)
       });
@@ -87,7 +87,7 @@ exports.findOne = async (req, res) => {
   
   try {
 
-    const data = await User.findByPk(id, { include: Project });
+    const data = await User.findByPk(id, { include: Service });
     
     if (!data || Array.isArray(data) && data.length === 0) {
       return res.status(404).json({ message: 'No data found' });
@@ -152,7 +152,7 @@ exports.deleteAll = async (req, res) => {
     await User.destroy({ where: {}, truncate: false });
     
     res.status(200).send({
-      message : "All Projects has been deleted Successfully!"
+      message : "All Services has been deleted Successfully!"
     
     })
   } catch (err) {
@@ -167,7 +167,7 @@ exports.deleteAll = async (req, res) => {
 // FIND ALL PUBLISHED USERS
 exports.findAllUpdated = async (req, res) => {
   
-  const data = await User.findAll({ where: { updated: true } });
+  const data = await User.findAll({ where: { subscribe: true } });
 
   try {
     

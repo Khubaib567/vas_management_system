@@ -1,12 +1,12 @@
 const db = require("../config/db.config");
-const Project = db.projects;
+const Service = db.services;
 const User = db.users;
 const Op = db.Sequelize.Op;
 
 // CREATE USER
 exports.create = async (req, res) => {
    
-    const {project_title , project_created_by , updated } = req.body
+    const {service , subscriber , subscribe } = req.body
     try {
       // CHECK THE BODY OF REQ. IS NULL OR NOT
       
@@ -15,30 +15,33 @@ exports.create = async (req, res) => {
       }
   
       // CREATE A PROJECT OBJECT.
-      const project = {
-        project_title: project_title,
-        project_created_by: project_created_by,
-        updated: updated ? updated : false
+      const serviceObj = {
+        service: service,
+        subscriber: subscriber,
+        subscribe: subscribe ? subscribe : false
       };
+      // console.log(serviceObj.subscriber)
   
       // FETCH USER WITH PROJECT ARRIBUTE.
-      const users = await User.findAll({ include: Project });
+      const users = await User.findAll({ include: Service });
   
-      const user = users.find((obj) => obj.name === project.project_created_by);
+      const user = users.find((obj) => obj.name === serviceObj.subscriber);
+      // console.log(user)
 
       // UPDATE THE USER UPDATE ATTRIBUTE 
-      const result = await User.update({ updated: project.updated }, { where: { id: user.id } });
-      if(result) console.log("User 'Updated' column has been updated!")
+      const result = await User.update({ subscribe: serviceObj.subscribe }, { where: { id: user.id } });
+      if(result) console.log("User 'Serice' column has been updated!")
 
       // CREATE A PROJECT INSTANCE.
-      const newProject = await Project.create(project);
+      const updatedService = await Service.create(serviceObj);
+      // console.log(updatedService)
       
        // SET THE PROJECT INSTANCE WITH FOREIGN KEY BASED ON USER'ID
       if (user) {
-        await user.setProjects(newProject);
+        await user.setServices(updatedService);
       }
   
-      res.status(200).send(newProject);
+      res.status(200).send(updatedService);
       
     } catch (err) {
       res.status(500).send({
@@ -50,11 +53,11 @@ exports.create = async (req, res) => {
   
 // RETRIEVE ALL PROJECTS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const { project_title, page = 1, limit = 10 } = req.query;
+  const { service, page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
 
-  const condition = project_title
-    ? { project_title: { [Op.like]: `%${project_title}%` } }
+  const condition = service
+    ? { service: { [Op.like]: `%${service}%` } }
     : {};
   
   try {
@@ -89,7 +92,7 @@ exports.findOne = async (req, res) => {
   
   try {
     
-    const data = await Project.findByPk(id , { include : User });
+    const data = await Service.findByPk(id , { include : User });
 
     if (!data || Array.isArray(data) && data.length === 0) {
       return res.status(404).json({ message: 'No data found' });
@@ -112,7 +115,7 @@ exports.update = async (req, res) => {
   
   try {
 
-    const result = await Project.update(req.body, { where: { id: id } });
+    const result = await Service.update(req.body, { where: { id: id } });
     console.log(result)
 
     // IF NO ROWS ARE UPDDATED.
@@ -136,7 +139,7 @@ exports.delete = async (req, res) => {
 
   try {
     
-    await Project.destroy({ where: { id: id } });
+    await Service.destroy({ where: { id: id } });
     
     res.status(200).send({ message: "Project was deleted successfully!" });
   } catch (err) {
@@ -151,7 +154,7 @@ exports.delete = async (req, res) => {
 exports.deleteAll = async (req, res) => {
   try {
     
-    await Project.destroy({ where: {}, truncate: false });
+    await Service.destroy({ where: {}, truncate: false });
     
     res.status(200).send({
       message : "All Projects has been deleted Successfully!"
@@ -168,7 +171,7 @@ exports.deleteAll = async (req, res) => {
 
 // FIND ALL PUBLISHED PROJECTS
 exports.findAllUpdated = async (req, res) => {
-  const data = await Project.findAll({ where: { updated: true } });
+  const data = await Service.findAll({ where: { subscribe: true } });
 
   try {
      

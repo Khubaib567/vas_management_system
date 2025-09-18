@@ -1,14 +1,14 @@
 module.exports = (sequelize, DataTypes) => {
-  const Project = sequelize.define("project", {
-      project_title: {
+  const Project = sequelize.define("service", {
+      service: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      project_created_by: {
+      subscriber: {
       type: DataTypes.STRING,
       allowNull: false
       },
-      updated: {
+      subscribe: {
         type: DataTypes.BOOLEAN,
       },
       createdAt: {

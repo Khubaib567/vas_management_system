@@ -1,4 +1,4 @@
-const projects = require("../controller/project.controller.js");
+const services = require("../controller/service.controller.js");
 let router = require("express").Router();
 
 // APPLY AUTHENTICATION AS MIDDLEWARE
@@ -10,19 +10,19 @@ module.exports = app => {
     // APPLY AUTHENTICATION & ATHORIZATION TO ALL ROUTES
     router.use(auth() , authRole())
     // CREATE A NEW PROJECT
-    router.post("/", projects.create);
-    // RETRIEVE ALL PROJECTS
-    router.get("/", projects.findAll);
-    // RETRIEVE ALL PUBLISHED PROJECTS
-    router.get("/updated", projects.findAllUpdated);
+    router.post("/", services.create);
+    // RETRIEVE ALL services
+    router.get("/", services.findAll);
+    // RETRIEVE ALL PUBLISHED services
+    router.get("/updated", services.findAllUpdated);
     // RETRIEVE A SINGLE USER WITH PROJECT_TITLE
-    router.get("/:id", projects.findOne);
+    router.get("/:id", services.findOne);
     // UPDATE A USER WITH ID
-    router.put("/:id", projects.update);
+    router.put("/:id", services.update);
     // DELETE A USER WITH ID
-    router.delete("/:id", projects.delete);
-    // DELETE ALL PROJECTS
-    router.delete("/", projects.deleteAll);
+    router.delete("/:id", services.delete);
+    // DELETE ALL services
+    router.delete("/", services.deleteAll);
     app.use('/api/project', router);
    
 };
