@@ -8,7 +8,7 @@ const {authRole} = require("../utils/auth.config.js");
 
 module.exports = app => {
     // APPLY AUTHENTICATION & ATHORIZATION TO ALL ROUTES
-    router.use(auth() , authRole())
+    // router.use(auth() , authRole())
     // CREATE A NEW PROJECT
     router.post("/", services.create);
     // RETRIEVE ALL services
@@ -23,6 +23,6 @@ module.exports = app => {
     router.delete("/:id", services.delete);
     // DELETE ALL services
     router.delete("/", services.deleteAll);
-    app.use('/api/project', router);
+    app.use('/api/services', router);
    
 };

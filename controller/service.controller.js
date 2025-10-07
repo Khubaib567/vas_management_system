@@ -1,47 +1,25 @@
-const db = require("../config/db.config");
-const Service = db.services;
-const User = db.users;
-const Op = db.Sequelize.Op;
+const db_connector = require("../config/db.config");
+const {createServiceFromSqldb , getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb}  = require("../utils/sql.service.operations")
 
 // CREATE USER
 exports.create = async (req, res) => {
    
-    const {service , msisdn , subscribe } = req.body
+    
     try {
-      // CHECK THE BODY OF REQ. IS NULL OR NOT
-      
+      const db = await db_connector();
       if (!req.body) {
         return res.status(400).send({ message: "Content can not be empty!" });
       }
   
-      // CREATE A PROJECT OBJECT.
-      const serviceObj = {
-        service: service,
-        msisdn : msisdn ,
-        subscribe: subscribe ? subscribe : false
-      };
-      // console.log(serviceObj.subscriber)
-  
-      // FETCH USER WITH PROJECT ARRIBUTE.
-      const users = await User.findAll({ include: Service });
-  
-      const user = users.find((obj) => obj.msisdn === serviceObj.msisdn);
-      // console.log(user)
+      if(typeof(db) === "object") {
 
-      // UPDATE THE USER UPDATE ATTRIBUTE 
-      const result = await User.update({ subscribe: serviceObj.subscribe }, { where: { id: user.id } });
-      if(result) console.log("User 'Service' column has been updated!")
-
-      // CREATE A PROJECT INSTANCE.
-      const updatedService = await Service.create(serviceObj);
-      // console.log(updatedService)
-      
-       // SET THE PROJECT INSTANCE WITH FOREIGN KEY BASED ON USER'ID
-      if (user) {
-        await user.setServices(updatedService);
+      // CHECK THE BODY OF REQ. IS NULL OR NOT
+      const service = await createServiceFromSqldb(req)
+      res.status(200).send(service);
       }
-  
-      res.status(200).send(updatedService);
+
+      if (typeof(db) === "string") res.status(200).json({message : 'Create Route!'});
+      
       
     } catch (err) {
       res.status(500).send({
@@ -53,52 +31,57 @@ exports.create = async (req, res) => {
   
 // RETRIEVE ALL PROJECTS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const { service, page = 1, limit = 10 } = req.query;
-  const offset = (page - 1) * limit;
 
-  const condition = service
-    ? { service: { [Op.like]: `%${service}%` } }
-    : {};
-  
-  try {
+      
+      try {
 
-  const data = await Project.findAndCountAll({
-    where: condition,
-    limit: parseInt(limit),
-    offset: parseInt(offset)
-  });
+        const db = await db_connector();
+        // console.log(typeof(db) === String)
+        if (typeof(db) === "object") {
+          const services = await getAllSerivceFromSqldb(req,db)
 
-  if (!data || data.count === 0) {
-    return res.status(404).json({ message: 'No data found' });
-  }
+          if (!services || services.count === 0) {
+          return res.status(404).json({ message: 'No data found' });
+          }
 
-  res.status(200).json({
-    totalItems: data.count,
-    totalPages: Math.ceil(data.count / limit),
-    currentPage: parseInt(page),
-    projects: data.rows
-  });
+          res.status(200).json({
+            totalItems: services.count,
+            totalPages: Math.ceil(services.count / limit),
+            currentPage: parseInt(page),
+            services: services.rows
+          });
+        }
 
-} catch (err) {
-  res.status(500).json({
-    message: err.message || "Some error occurred while retrieving Projects."
-  });
-};
+        if (typeof(db) === "string") res.status(200).json({message : 'Find All Route!'});
+
+        
+        
+      } catch (error) {
+         res.status(500).json({
+          message: err.message || "Some error occurred while retrieving Projects."
+        });
+      }
 }
 
 // FIND A SINGLE PROJECT WITH A PROJECT_ID.
 exports.findOne = async (req, res) => {
-  const id = req.params.id;
   
+  const id = req.params.id;
   try {
-    
-    const data = await Service.findByPk(id , { include : User });
 
-    if (!data || Array.isArray(data) && data.length === 0) {
-      return res.status(404).json({ message: 'No data found' });
+    const db = await db_connector();
+
+    if(typeof(db) === "object") {
+         const service = await getOneServiceFromSqldb(req,id,db);
+        if (!service || Array.isArray(data) && data.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+        }
+
+        res.status(200).send(service)
     }
+   
 
-    res.status(200).send(data)
+    if (typeof(db) === "string") res.status(200).json({message : 'Find One Route!'});
     
   } catch (err) {
     res.status(500).send({
@@ -115,20 +98,20 @@ exports.update = async (req, res) => {
   
   try {
 
-    const { msisdn , subscribe} = req.body
+    const db = await db_connector();
+    if(typeof(db) === "object") {
+      const result = await updateServiceFromSqldb(req,id,db)
+      // console.log(result)
+      // IF NO ROWS ARE UPDDATED.
+      if (result[0] === 0) {
+        return res.status(400).json({ message: "Requested content can't be updated" });
+      }
 
-    const result = await Service.update(req.body, { where: { id: id } });
-    // console.log(result)
-
-    const userUpdated = await User.update({ subscribe: subscribe }, { where: { msisdn : msisdn } });
-    if(userUpdated) console.log("User 'Serice' column has been updated!")
-
-    // IF NO ROWS ARE UPDDATED.
-    if (result[0] === 0) {
-      return res.status(400).json({ message: "Requested content can't be updated" });
+      res.status(200).send({ message: "Service was updated successfully!" });
     }
 
-    res.status(200).send({ message: "Project was updated successfully!" });
+    if (typeof(db) === "string") res.status(200).json({message : 'Update Route!'});
+
     
   } catch (err) {
     res.status(500).send({
@@ -143,10 +126,14 @@ exports.delete = async (req, res) => {
   const id = req.params.id;
 
   try {
-    
-    await Service.destroy({ where: { id: id } });
-    
+     const db = await db_connector();
+     if(typeof(db) === "object"){
+         await deleteServiceFromSqldb(id,db)
     res.status(200).send({ message: "Project was deleted successfully!" });
+     }
+
+      if (typeof(db) === "string") res.status(200).json({message : 'Delete Route!'});
+   
   } catch (err) {
     
     res.status(500).send({
@@ -159,11 +146,18 @@ exports.delete = async (req, res) => {
 exports.deleteAll = async (req, res) => {
   try {
     
-    await Service.destroy({ where: {}, truncate: false });
+    const db = await db_connector();
+
+    if(typeof(db) === "object") {
+        await deleteAllServiceFromSqldb(db);
     
-    res.status(200).send({
-      message : "All Projects has been deleted Successfully!"
-    })
+        res.status(200).send({
+          message : "All Projects has been deleted Successfully!"
+        })
+    }
+
+     if (typeof(db) === "string") res.status(200).json({message : 'Delete All Route!'});
+    
   } catch (err) {
     
     res.status(500).send({
@@ -176,15 +170,23 @@ exports.deleteAll = async (req, res) => {
 
 // FIND ALL PUBLISHED PROJECTS
 exports.findAllUpdated = async (req, res) => {
-  const data = await Service.findAll({ where: { subscribe: true } });
-
+ 
   try {
-     
-    if (!data || Array.isArray(data) && data.length === 0) {
-      return res.status(404).json({ message: 'No data found' });
-    }
+     const db = await db_connector();
+   
+     if(typeof(db) === "object"){
+        const data = await findAllUpdatedServiceFromSqldb(db)
+        if (!data || Array.isArray(data) && data.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+        }
+
+        res.send(data)
+     }
+
+     if (typeof(db) === "string") res.status(200).json({message : 'Find All Updated Route!'});
+   
     
-    res.send(data)
+    
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Projects."
