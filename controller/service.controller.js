@@ -30,7 +30,7 @@ exports.create = async (req, res) => {
 
       // UPDATE THE USER UPDATE ATTRIBUTE 
       const result = await User.update({ subscribe: serviceObj.subscribe }, { where: { id: user.id } });
-      if(result) console.log("User 'Serice' column has been updated!")
+      if(result) console.log("User 'Service' column has been updated!")
 
       // CREATE A PROJECT INSTANCE.
       const updatedService = await Service.create(serviceObj);
