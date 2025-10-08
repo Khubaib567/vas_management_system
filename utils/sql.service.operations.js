@@ -1,3 +1,5 @@
+const { where } = require("sequelize");
+
 const createServiceFromSqldb = async (req, db) => {
   const {service , msisdn , subscribe } = req.body
   const Service = db.services;
@@ -130,4 +132,24 @@ const findAllUpdatedServiceFromSqldb = async (db) => {
 
 }
 
-module.exports = {createServiceFromSqldb,getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb}
+
+const updateServiceinBulkFromSqldb = async (req,db) =>{
+  const subscription = req.body.subscription
+  const Service = db.services;
+  try {
+
+    const data = await Service.update({ subscription : false } , 
+      {
+        where : {
+            subscription : subscription
+        }
+      })
+
+     return data;
+    
+  } catch (error) {
+     throw new Error("Error updating services in bulk: " , error.message)
+  }
+}
+
+module.exports = {createServiceFromSqldb,getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb , updateServiceinBulkFromSqldb}

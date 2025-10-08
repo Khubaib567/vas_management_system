@@ -14,7 +14,7 @@ module.exports = db_connector = async () => {
     console.log('Connecting with Mongodb Connector......')
     try {
     const db = await mongodbConnector()
-    // console.log(db)
+    console.log('Connected with Mongodb.')
     return db;
     } catch (error) {
       throw new Error(error.message);

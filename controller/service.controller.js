@@ -1,5 +1,5 @@
 const db_connector = require("../config/db.config");
-const {createServiceFromSqldb , getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb}  = require("../utils/sql.service.operations")
+const {createServiceFromSqldb,getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb , updateServiceinBulkFromSqldb} = require("../utils/sql.service.operations")
 
 // CREATE USER
 exports.create = async (req, res) => {
@@ -193,3 +193,31 @@ exports.findAllUpdated = async (req, res) => {
     });
   }
 };
+
+
+exports.updateServiceinBulk = async (req,res) => {
+  try {
+
+     if (!req.body) {
+        return res.status(400).send({ message: "Content can not be empty!" });
+      }
+
+      if (!req.body.subscription) {
+        return res.status(400).send({ message: "Bad Request!" });
+      }
+     
+     const db = await db_connector();
+   
+     if(typeof(db) === "object"){
+        const data = await updateServiceinBulkFromSqldb(req,db)
+        res.send(data)
+     }
+
+     if (typeof(db) === "string") res.status(200).json({message : 'Update Services bulk Route!'});
+  
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving Projects."
+    });
+  }
+}

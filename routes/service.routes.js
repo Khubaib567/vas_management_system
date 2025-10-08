@@ -15,6 +15,8 @@ module.exports = app => {
     router.get("/", services.findAll);
     // RETRIEVE ALL PUBLISHED services
     router.get("/updated", services.findAllUpdated);
+    // RETRIEVE SERVICES WITH BULK SUBSCRIPTION
+    router.put("/bulk", services.updateServiceinBulk);
     // RETRIEVE A SINGLE USER WITH PROJECT_TITLE
     router.get("/:id", services.findOne);
     // UPDATE A USER WITH ID
