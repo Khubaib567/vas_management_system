@@ -14,7 +14,7 @@ exports.create = async (req, res) => {
       if(typeof(db) === "object") {
 
       // CHECK THE BODY OF REQ. IS NULL OR NOT
-      const service = await createServiceFromSqldb(req)
+      const service = await createServiceFromSqldb(req , db)
       res.status(200).send(service);
       }
 
@@ -31,8 +31,7 @@ exports.create = async (req, res) => {
   
 // RETRIEVE ALL PROJECTS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-
-      
+  
       try {
 
         const db = await db_connector();
@@ -66,13 +65,12 @@ exports.findAll = async (req, res) => {
 // FIND A SINGLE PROJECT WITH A PROJECT_ID.
 exports.findOne = async (req, res) => {
   
-  const id = req.params.id;
   try {
-
+    const id = req.params.id;
     const db = await db_connector();
 
     if(typeof(db) === "object") {
-         const service = await getOneServiceFromSqldb(req,id,db);
+         const service = await getOneServiceFromSqldb(id,db);
         if (!service || Array.isArray(data) && data.length === 0) {
           return res.status(404).json({ message: 'No data found' });
         }
@@ -94,10 +92,9 @@ exports.findOne = async (req, res) => {
 // UPDATE A USER BY THE USER_ID IN THE REQUEST.
 exports.update = async (req, res) => {
 
-  const id = req.params.id;
   
   try {
-
+    const id = req.params.id;
     const db = await db_connector();
     if(typeof(db) === "object") {
       const result = await updateServiceFromSqldb(req,id,db)
@@ -123,13 +120,13 @@ exports.update = async (req, res) => {
 
 // DELETE A USER WITH THE SPECIFIED USER_ID IN THE REQUEST
 exports.delete = async (req, res) => {
-  const id = req.params.id;
 
   try {
+      const id = req.params.id;
      const db = await db_connector();
      if(typeof(db) === "object"){
          await deleteServiceFromSqldb(id,db)
-    res.status(200).send({ message: "Project was deleted successfully!" });
+         res.status(200).send({ message: "Project was deleted successfully!" });
      }
 
       if (typeof(db) === "string") res.status(200).json({message : 'Delete Route!'});

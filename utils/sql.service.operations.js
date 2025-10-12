@@ -1,11 +1,13 @@
 const { where } = require("sequelize");
 
 const createServiceFromSqldb = async (req, db) => {
-  const {service , msisdn , subscribe } = req.body
-  const Service = db.services;
-  const User = db.users;
+
 
   try {
+
+      const {service , msisdn , subscribe } = req.body
+      const Service = db.services;
+      const User = db.users;
 
      // CREATE A PROJECT OBJECT.
       const serviceObj = {
@@ -45,18 +47,19 @@ const createServiceFromSqldb = async (req, db) => {
 
 
 const getAllSerivceFromSqldb = async (req , db) => {
-  console.log('Hello From Server!')
-  const Service = db.services;
-  const Op = db.Sequelize.Op;
-
-  const { service, page = 1, limit = 10 } = req.query;
-  const offset = (page - 1) * limit;
-
-  const condition = service
-    ? { service: { [Op.like]: `%${service}%` } }
-    : {};
+  // console.log('Hello From Server!')
+ 
 
   try {
+     const Service = db.services;
+    const Op = db.Sequelize.Op;
+
+    const { service, page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const condition = service
+      ? { service: { [Op.like]: `%${service}%` } }
+      : {};
 
     const data = await Service.findAndCountAll({
       where: condition,
@@ -73,10 +76,11 @@ const getAllSerivceFromSqldb = async (req , db) => {
 
 
 
-const getOneServiceFromSqldb = async (req,id,db) => {
-    const Service = db.services;
-    const User = db.users;
+const getOneServiceFromSqldb = async (id,db) => {
+   
     try {
+      const Service = db.services;
+      const User = db.users;
       const data = await Service.findByPk(id , { include : User })
       return data
     } catch (error) {
@@ -86,14 +90,16 @@ const getOneServiceFromSqldb = async (req,id,db) => {
 }
 
 const updateServiceFromSqldb = async (req,id,db) => {
+   
+    try {
     const Service = db.services;
     const User = db.users;
     const { msisdn , subscribe} = req.body
-    try {
-      const data = await Service.update(req.body, { where: { id: id } })
-      const userUpdated = await User.update({ subscribe: subscribe }, { where: { msisdn : msisdn } });
-      if(userUpdated) console.log("User 'Serice' column has been updated!")
-      return data
+
+    const data = await Service.update(req.body, { where: { id: id } })
+    const userUpdated = await User.update({ subscribe: subscribe }, { where: { msisdn : msisdn } });
+    if(userUpdated) console.log("User 'Serice' column has been updated!")
+    return data
     } catch (error) {
       throw new Error("Error find the service : " , err.message)
     }
@@ -102,8 +108,9 @@ const updateServiceFromSqldb = async (req,id,db) => {
 
 
 const deleteServiceFromSqldb = async (id,db) => {
-    const Service = db.services;
     try {
+    const Service = db.services;
+
       await Service.destroy({ where: { id: id } });
     } catch (error) {
       throw new Error("Error find the service : " , err.message)
@@ -112,8 +119,9 @@ const deleteServiceFromSqldb = async (id,db) => {
 }
 
 const deleteAllServiceFromSqldb = async (db) => {
-    const Service = db.services;
     try {
+    const Service = db.services;
+
       await Service.destroy({ where: {}, truncate: false });
     } catch (error) {
       throw new Error("Error find the service : " , err.message)
@@ -122,8 +130,8 @@ const deleteAllServiceFromSqldb = async (db) => {
 }
 
 const findAllUpdatedServiceFromSqldb = async (db) => {
-    const Service = db.services;
     try {
+      const Service = db.services;
       const data = await Service.findAll({ where: { subscribe: true } });;
       return data;
     } catch (error) {
@@ -134,9 +142,11 @@ const findAllUpdatedServiceFromSqldb = async (db) => {
 
 
 const updateServiceinBulkFromSqldb = async (req,db) =>{
-  const subscription = req.body.subscription
-  const Service = db.services;
+ 
   try {
+
+    const subscription = req.body.subscription
+    const Service = db.services;
 
     const data = await Service.update({ subscription : false } , 
       {

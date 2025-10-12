@@ -1,45 +1,25 @@
-const db = require("../config/db.config");
-const {generateToken,removeToken} = require('../utils/json.token');
-const User = db.users;
-const Service = db.services
-
-
-
+const db_connector = require("../config/db.config");
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
-  // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
-  const {name , msisdn , role , subscribe } = req.body;
   
   try {
+
+    const db = await db_connector();
+
     if (!req.body) {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
-    
-    // CREATE A USER OBJECT
-    const obj = {
-      name: name,
-      msisdn : msisdn ,
-      role : role ? role : "STUDENT" ,
-      subscribe : subscribe ? subscribe : false
-    };
 
+    if(typeof(db) === "object"){
 
-    // SAVE USER IN THE DATABASE
-    const data = await User.create(obj);
+      const user = await createUserFromSqldb(req , db)
+      res.status(200).send(user);
 
-    // FETCH THE NEWLY CREATED USER USING FINDONE
-    const user = await User.findOne({ where: { id: data.id } });
-    
-    if (!user || Array.isArray(user) && user.length === 0) {
-       return res.status(404).json({ message: "User not found after creation" });
     }
 
-    // GENERATE TOKEN 
-    const token = await generateToken(res, user.id);
-    // UPDATE THE USER WITH INSERT THE TOKEN
-    const result = await user.update({ token });
-    res.send({ result });
+    if (typeof(db) === "string") res.status(200).json({message : 'Create Route!'});
+       
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while creating the User."
@@ -47,28 +27,29 @@ exports.create = async (req, res) => {
   }
 };
 
+
 // RETRIEVE ALL USERS FROM THE DATABASE.
 exports.findAll = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query; // Default: page 1, limit 10
-  const offset = (page - 1) * limit;
 
-  try {
-      const data = await User.findAndCountAll({
-        include: Service,
-        limit: parseInt(limit),
-        offset: parseInt(offset)
-      });
+try {
+ const db = await db_connector();
+  // console.log(typeof(db) === String)
+  if (typeof(db) === "object") {
+    const users = await getAllUserFromSqldb(req,db)
 
-      if (!data || data.count === 0) {
-        return res.status(404).json({ message: 'No data found' });
-      }
+    if (!users || users.count === 0) {
+      return res.status(404).json({ message: 'No data found' });
+    }
 
-      res.status(200).json({
-        totalItems: data.count,
-        totalPages: Math.ceil(data.count / limit),
+    res.status(200).json({
+        totalItems: users.count,
+        totalPages: Math.ceil(users.count / limit),
         currentPage: parseInt(page),
-        users: data.rows
-      });
+        users: users.rows
+    });
+  }
+       
+  if (typeof(db) === "string") res.status(200).json({message : 'Find All Route!'});
 
   } catch (err) {
       res.status(500).json({
@@ -82,21 +63,25 @@ exports.findAll = async (req, res) => {
 // FIND A SINGLE USER WITH AN ID
 exports.findOne = async (req, res) => {
   
-  const id = req.params.id;
-  
   try {
+    const id = req.params.id;
+    const db = await db_connector();
 
-    const data = await User.findByPk(id, { include: Service });
-    
-    if (!data || Array.isArray(data) && data.length === 0) {
-      return res.status(404).json({ message: 'No data found' });
+    if(typeof(db) === "object") {
+         const user = await getOneUserFromSqldb(id,db);
+        if (!user || Array.isArray(data) && data.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+        }
+
+        res.status(200).send(user)
     }
+   
 
-    res.status(200).send(data)
-
+    if (typeof(db) === "string") res.status(200).json({message : 'Find One Route!'});
+    
   } catch (err) {
     res.status(500).send({
-      message: "Error retrieving User with id=" + id
+      message: "Error retrieving Project with project_id=" + id
     });
   }
 };
@@ -104,43 +89,48 @@ exports.findOne = async (req, res) => {
 // UPDATE A USER BY THE ID IN THE REQUEST
 exports.update = async (req, res) => {
 
-  const id = req.params.id;
-
   try {
-    
-    const result = await User.update(req.body, { where: { id: id } });
-    
-    // IF NO ROWS ARE UPDDATED.
-    if (result[0] === 0) {
-      return res.status(400).json({ message: "Requested content can't be updated" });
+    const id = req.params.id;
+    const db = await db_connector();
+    if(typeof(db) === "object") {
+      const result = await updateUserFromSqldb(req,id,db)
+      // console.log(result)
+      // IF NO ROWS ARE UPDDATED.
+      if (result[0] === 0) {
+        return res.status(400).json({ message: "Requested content can't be updated" });
+      }
+
+      res.status(200).send({ message: "User was updated successfully!" });
     }
-    
-    res.status(200).send({ message: "User was updated successfully!" });
+
+    if (typeof(db) === "string") res.status(200).json({message : 'Update Route!'});
+
     
   } catch (err) {
     res.status(500).send({
-      message: "Error updating user with id=" + id
+      message: "Error updating project with id=" + id
     });
   }
   
 };
+
+
 // DELETE A USER WITH THE SPECIFIED ID IN THE REQUEST
 exports.delete = async (req, res) => {
 
-  const id = req.params.id;
+ try {
+     const db = await db_connector();
+     if(typeof(db) === "object"){
+         await deleteUserFromSqldb(req,res,id,db)
+         res.status(200).send({ message: "Project was deleted successfully!" });
+     }
 
-  try {
-    await User.destroy({ where: { id: id } });
-
-    await removeToken(req, res);
-
-    res.status(200).send({ message: "User was deleted successfully!" });
-    }
-  catch (err) {
+      if (typeof(db) === "string") res.status(200).json({message : 'Delete Route!'});
+   
+  } catch (err) {
     
     res.status(500).send({
-      message: "Could not delete user with id=" + id
-    
+      message: "Could not delete project with id=" + id
     });
   }
  
@@ -148,12 +138,19 @@ exports.delete = async (req, res) => {
 // DELETE ALL USERS FROM THE DATABASE.
 exports.deleteAll = async (req, res) => {
   try {
-    await User.destroy({ where: {}, truncate: false });
     
-    res.status(200).send({
-      message : "All Services has been deleted Successfully!"
+    const db = await db_connector();
+
+    if(typeof(db) === "object") {
+        await deleteAllUserFromSqldb(db);
     
-    })
+        res.status(200).send({
+          message : "All Users has been deleted Successfully!"
+        })
+    }
+
+     if (typeof(db) === "string") res.status(200).json({message : 'Delete All Route!'});
+    
   } catch (err) {
     
     res.status(500).send({
@@ -163,22 +160,56 @@ exports.deleteAll = async (req, res) => {
   }
   
 };
+
+
 // FIND ALL PUBLISHED USERS
 exports.findAllUpdated = async (req, res) => {
-  
-  const data = await User.findAll({ where: { subscribe: true } });
-
   try {
-    
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-      return res.status(404).json({ message: 'No data found' });
-    }
+     const db = await db_connector();
+   
+     if(typeof(db) === "object"){
+        const data = await findAllUpdatedUserFromSqldb(db)
+        if (!data || Array.isArray(data) && data.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+        }
 
-    res.send(data);
+        res.send(data)
+     }
 
+     if (typeof(db) === "string") res.status(200).json({message : 'Find All Updated Route!'});
+   
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving Users."
     });
   }
+ 
 }
+
+exports.updateUserStatusinBulk = async (req,res) => {
+  try {
+
+     if (!req.body) {
+        return res.status(400).send({ message: "Content can not be empty!" });
+      }
+
+      if (!req.body.subscription) {
+        return res.status(400).send({ message: "Bad Request!" });
+      }
+     
+     const db = await db_connector();
+   
+     if(typeof(db) === "object"){
+        const data = await updateUserinBulkFromSqldb(req,db)
+        res.send(data)
+     }
+
+     if (typeof(db) === "string") res.status(200).json({message : 'Update Services bulk Route!'});
+  
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving Projects."
+    });
+  }
+}
+
