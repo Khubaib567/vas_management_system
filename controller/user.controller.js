@@ -1,4 +1,5 @@
 const db_connector = require("../config/db.config");
+const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../utils/sql.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
@@ -11,6 +12,8 @@ exports.create = async (req, res) => {
       return;
     }
 
+    if(typeof(db) === "function") res.status(200).json({message : 'Create Route!'});
+       
     if(typeof(db) === "object"){
 
       const user = await createUserFromSqldb(req , db)
