@@ -10,6 +10,8 @@ exports.create = async (req, res) => {
       if (!req.body) {
         return res.status(400).send({ message: "Content can not be empty!" });
       }
+
+      if(typeof(db) === "function") res.status(200).json({message : 'Create Route!'});
   
       if(typeof(db) === "object") {
 
@@ -36,6 +38,10 @@ exports.findAll = async (req, res) => {
 
         const db = await db_connector();
         // console.log(typeof(db) === String)
+
+        if(typeof(db) === "function") res.status(200).json({message : 'Find All Route!'});
+
+
         if (typeof(db) === "object") {
           const services = await getAllSerivceFromSqldb(req,db)
 
@@ -69,6 +75,10 @@ exports.findOne = async (req, res) => {
     const id = req.params.id;
     const db = await db_connector();
 
+
+    if(typeof(db) === "function") res.status(200).json({message : 'Find One Route!'});
+
+
     if(typeof(db) === "object") {
          const service = await getOneServiceFromSqldb(id,db);
         if (!service || Array.isArray(data) && data.length === 0) {
@@ -96,6 +106,9 @@ exports.update = async (req, res) => {
   try {
     const id = req.params.id;
     const db = await db_connector();
+
+    if(typeof(db) === "function") res.status(200).json({message : 'Update Route!'});
+
     if(typeof(db) === "object") {
       const result = await updateServiceFromSqldb(req,id,db)
       // console.log(result)
@@ -124,6 +137,9 @@ exports.delete = async (req, res) => {
   try {
       const id = req.params.id;
      const db = await db_connector();
+
+     if(typeof(db) === "function") res.status(200).json({message : 'Delete Route!'});
+
      if(typeof(db) === "object"){
          await deleteServiceFromSqldb(id,db)
          res.status(200).send({ message: "Project was deleted successfully!" });
@@ -144,6 +160,9 @@ exports.deleteAll = async (req, res) => {
   try {
     
     const db = await db_connector();
+
+    if(typeof(db) === "function") res.status(200).json({message : 'Delete All Route!'});
+
 
     if(typeof(db) === "object") {
         await deleteAllServiceFromSqldb(db);
@@ -170,6 +189,9 @@ exports.findAllUpdated = async (req, res) => {
  
   try {
      const db = await db_connector();
+
+     if(typeof(db) === "function") res.status(200).json({message : 'Find All Updated Route!'});
+
    
      if(typeof(db) === "object"){
         const data = await findAllUpdatedServiceFromSqldb(db)

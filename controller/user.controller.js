@@ -37,6 +37,10 @@ exports.findAll = async (req, res) => {
 try {
  const db = await db_connector();
   // console.log(typeof(db) === String)
+
+  if(typeof(db) === "function") res.status(200).json({message : 'Find All Route!'});
+  
+  
   if (typeof(db) === "object") {
     const users = await getAllUserFromSqldb(req,db)
 
@@ -70,6 +74,8 @@ exports.findOne = async (req, res) => {
     const id = req.params.id;
     const db = await db_connector();
 
+    if(typeof(db) === "function") res.status(200).json({message : 'Find One Route!'});
+
     if(typeof(db) === "object") {
          const user = await getOneUserFromSqldb(id,db);
         if (!user || Array.isArray(data) && data.length === 0) {
@@ -95,6 +101,10 @@ exports.update = async (req, res) => {
   try {
     const id = req.params.id;
     const db = await db_connector();
+
+    if(typeof(db) === "function") res.status(200).json({message : 'Update Route!'});
+
+
     if(typeof(db) === "object") {
       const result = await updateUserFromSqldb(req,id,db)
       // console.log(result)
@@ -123,6 +133,9 @@ exports.delete = async (req, res) => {
 
  try {
      const db = await db_connector();
+
+     if(typeof(db) === "function") res.status(200).json({message : 'Delete Route!'});
+     
      if(typeof(db) === "object"){
          await deleteUserFromSqldb(req,res,id,db)
          res.status(200).send({ message: "Project was deleted successfully!" });
@@ -143,6 +156,9 @@ exports.deleteAll = async (req, res) => {
   try {
     
     const db = await db_connector();
+
+    if(typeof(db) === "function") res.status(200).json({message : 'Delete All Route!'});
+
 
     if(typeof(db) === "object") {
         await deleteAllUserFromSqldb(db);
@@ -169,6 +185,9 @@ exports.deleteAll = async (req, res) => {
 exports.findAllUpdated = async (req, res) => {
   try {
      const db = await db_connector();
+
+     if(typeof(db) === "function") res.status(200).json({message : 'Find All Updated Route!'});
+
    
      if(typeof(db) === "object"){
         const data = await findAllUpdatedUserFromSqldb(db)
