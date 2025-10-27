@@ -1,5 +1,5 @@
 const db_connector = require("../config/db.config");
-const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../utils/sql.user.operatons")
+const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   

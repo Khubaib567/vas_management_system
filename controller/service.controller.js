@@ -1,5 +1,5 @@
 const db_connector = require("../config/db.config");
-const {createServiceFromSqldb,getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb , updateServiceinBulkFromSqldb} = require("../utils/sql.service.operations")
+const {createServiceFromSqldb,getAllSerivceFromSqldb , getOneServiceFromSqldb , updateServiceFromSqldb , deleteServiceFromSqldb , deleteAllServiceFromSqldb , findAllUpdatedServiceFromSqldb , updateServiceinBulkFromSqldb} = require("../controller/service.services/sql.service.operations")
 
 // CREATE USER
 exports.create = async (req, res) => {

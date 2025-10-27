@@ -1,4 +1,4 @@
-const {generateToken,removeToken} = require('../utils/auth.config');
+const {generateToken,removeToken} = require('../../utils/auth.config');
 
 
 const createUserFromSqldb = async (req , db) => {

@@ -1,7 +1,5 @@
-const { where } = require("sequelize");
 
 const createServiceFromSqldb = async (req, db) => {
-
 
   try {
 
