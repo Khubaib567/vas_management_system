@@ -1,5 +1,6 @@
 const db_connector = require("../config/db.config");
 const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
+const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb } = require("../controller/user.services/postgres.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
@@ -12,11 +13,19 @@ exports.create = async (req, res) => {
       return;
     }
 
-    if(typeof(db) === "function") res.status(200).json({message : 'Create Route!'});
+    if(typeof(db) === "function") {
+      const user = await createUserFromPostgreSQLdb(req , res , db)
+
+      if (!user || Array.isArray(user) && user.length === 0) {
+       return res.status(404).json({ message: "User not found after creation" });
+      }
+
+      res.status(200).send(user);
+    }
        
     if(typeof(db) === "object"){
 
-      const user = await createUserFromSqldb(req , db)
+      const user = await createUserFromSqldb(req , res, db)
       res.status(200).send(user);
 
     }
@@ -38,8 +47,18 @@ try {
  const db = await db_connector();
   // console.log(typeof(db) === String)
 
-  if(typeof(db) === "function") res.status(200).json({message : 'Find All Route!'});
-  
+  if(typeof(db) === "function") {
+    
+    const users = await getAllUserFromPostgreSQLdb(req,db);
+
+    res.status(200).json({
+        totalItems: users.count,
+        totalPages: Math.ceil(users.count / limit),
+        currentPage: parseInt(page),
+        users: users.rows
+    });
+
+  }
   
   if (typeof(db) === "object") {
     const users = await getAllUserFromSqldb(req,db)

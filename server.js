@@ -9,7 +9,17 @@ const logger = require("morgan");
 const app = express();
 const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
-// PROTECT APP FROM MANY ATTACKS
+// const { Resolver } = require('node:dns');
+// const resolver = new Resolver();
+
+
+
+// const addResolver = (req, res, next) => {
+//   req.customResolver = resolver;
+//   next(); // Passes control to the next handler
+// };
+
+// app.use(addResolver);
 
 // CONFIG HELMET TO APPLY DEFAULT HEADER TO AN APP
 app.use(helmet())

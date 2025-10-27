@@ -11,6 +11,8 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "cors": "^2.8.5",
+    "dns": "^0.2.2",
+    "dns-query": "^0.11.2",
     "dotenv": "^16.0.2",
     "express": "^4.21.2",
     "express-paginate": "^1.0.2",

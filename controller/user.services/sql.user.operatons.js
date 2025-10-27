@@ -1,7 +1,7 @@
-const {generateToken,removeToken} = require('../../utils/auth.config');
+const {generateToken,removeToken} = require('../../utils/json.token');
 
 
-const createUserFromSqldb = async (req , db) => {
+const createUserFromSqldb = async (req , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     const {name , msisdn , role , subscribe } = req.body;

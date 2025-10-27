@@ -1,57 +1,49 @@
-const {generateToken,removeToken} = require('../../utils/auth.config')
+const {generateToken,removeToken} = require('../../utils/json.token')
 
 
-const createUserFromSqldb = async (req , db) => {
+const createUserFromPostgreSQLdb = async (req , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
-    const {name , msisdn , role , subscribe } = req.body;
-    const User = db.users;
-
-    // CREATE A USER OBJECT
-    const obj = {
-      name: name,
-      msisdn : msisdn ,
-      role : role ? role : "STUDENT" ,
-      subscribe : subscribe ? subscribe : false
-    };
-
+    
+    const {name , operator , subscription , msisdn , services } = req.body;
 
     // SAVE USER IN THE DATABASE
-    const data = await User.create(obj);
+
+    await db.query('INSERT INTO users (name, operator, subscription , msisdn , services) VALUES ($1, $2, $3 , $4 , $5)', [name, operator, subscription , msisdn , services])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
-    const user = await User.findOne({ where: { id: data.id } });
-    
-    if (!user || Array.isArray(user) && user.length === 0) {
-       return res.status(404).json({ message: "User not found after creation" });
-    }
+  
+    const user = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    // console.log("User Id: " , user[0].id)
 
+   
     // GENERATE TOKEN 
-    const token = await generateToken(res, user.id);
+    const token = await generateToken(res, user[0].id);
+    // console.log("Token: ", token)
     // UPDATE THE USER WITH INSERT THE TOKEN
-    const result = await user.update({ token });
+    await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
 
-    return result;
+    const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    // console.log('UpdatedUser: ' , updatedUser)
+    return updatedUser;
         
     } catch (error) {
-        throw new Error('Error during create a user.' , error.message)
+        throw new Error("Error during create a user!" , error.message);
     }
 }
 
-const getAllUserFromSqldb = async (req , db) =>{
+const getAllUserFromPostgreSQLdb = async (req , db) =>{
     try {
-
-
-        const User = req.Users;
 
         const { page = 1, limit = 10 } = req.query; // Default: page 1, limit 10
         const offset = (page - 1) * limit;
 
-        const data = await User.findAndCountAll({
-            include: User,
-            limit: parseInt(limit),
-            offset: parseInt(offset)
-        });
+        // const data = await db.query('SELECT * FROM users ORDER BY id ASC');
+
+       const data = await db.query(
+          'SELECT * FROM users ORDER BY id ASC LIMIT $1 OFFSET $2',
+          [parseInt(limit), parseInt(offset)]
+        );
 
 
         return data
@@ -149,4 +141,4 @@ const updateUserinBulkFromSqldb = async (req,db) =>{
 }
 
 
-module.exports = {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
+module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
