@@ -48,7 +48,7 @@ const authRole =  () => {
         // CHECK THE USER ROLE
         if (!user || user.role !== process.env.ADMIN) {
         // console.log("Admin: " , process.env.ADMIN)
-        return res.status(401).send({ message : 'Not allowed!' }) 
+        return res.status(401).send({ message : user.role }) 
         }
 
         next()
