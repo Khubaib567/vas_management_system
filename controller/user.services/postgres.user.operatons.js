@@ -82,11 +82,11 @@ const updateUserFromPostreSQLdb = async (req,id,db) => {
 
 }
 
-const deleteUserFromSqldb = async (req,res,id,db) => {
+const deleteUserFromPostgreSQLdb = async (req,res,id,db) => {
     
     try {
-        const User = db.usersl
-        await User.destroy({ where: { id: id } });
+        
+        await db.query('DELETE FROM users WHERE id = $1' , [id]);
         await removeToken(req, res);
 
     } catch (error) {
@@ -96,10 +96,10 @@ const deleteUserFromSqldb = async (req,res,id,db) => {
 }
 
 
-const deleteAllUserFromSqldb = async (db) => {
+const deleteAllUserFromPostgreSQLdb = async (db) => {
     try {
-     const User = db.Users;
-      await User.destroy({ where: {}, truncate: false });
+        await db.query('DELETE FROM users');
+        await removeToken(req, res);
     } catch (error) {
       throw new Error("Error find the User : " , err.message)
     }
@@ -107,10 +107,9 @@ const deleteAllUserFromSqldb = async (db) => {
 }
 
 
-const findAllUpdatedUserFromSqldb = async (db) => {
+const findAllUpdatedUserFromPostgreSQLdb = async (db) => {
     try {
-      const User = db.users;
-      const data = await User.findAll({ where: { subscribe: true } });;
+      const data = await db.query('SELECT * FROM users WHERE subscription = true');
       return data;
     } catch (error) {
       throw new Error("Error find the users : " , err.message)
@@ -118,21 +117,12 @@ const findAllUpdatedUserFromSqldb = async (db) => {
 
 }
 
-const updateUserinBulkFromSqldb = async (req,db) =>{
+const updateUserinBulkFromPostgreSqldb = async (db) =>{
  
   try {
 
-    const subscription = req.body.subscription
-    const User = db.users;
-
-    const data = await User.update({ subscription : false } , 
-      {
-        where : {
-            subscription : subscription
-        }
-      })
-
-     return data;
+    await db.query('UPDATE users SET subscription = true WHERE subscription = false')
+  
     
   } catch (error) {
      throw new Error("Error updating Users in bulk: " , error.message)
@@ -140,4 +130,4 @@ const updateUserinBulkFromSqldb = async (req,db) =>{
 }
 
 
-module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
+module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromPostgreSQLdb,deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb,updateUserinBulkFromPostgreSqldb}

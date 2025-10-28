@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "server": "node --watch server.js "
+    "server": "node --watch server.js ",
+    "client": "node --watch client.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "axios": "^1.13.0",
     "cors": "^2.8.5",
     "dns": "^0.2.2",
     "dns-query": "^0.11.2",

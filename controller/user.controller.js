@@ -1,12 +1,13 @@
 const db_connector = require("../config/db.config");
-const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
-const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , updateUserFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
+const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateUserFromSqldb , deleteUserFromSqldb , deleteAllUserFromSqldb , findAllUpdatedUserFromSqldb, updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
+const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb} = require("../controller/user.services/postgres.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
   try {
 
     const db = await db_connector();
+    // console.log('Reqbody: ' , req.body)
 
     if (!req.body) {
       res.status(400).send({ message: "Content can not be empty!" });
@@ -175,13 +176,18 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
 
  try {
+
+     const id = req.params.id;
      const db = await db_connector();
 
-     if(typeof(db) === "function") res.status(200).json({message : 'Delete Route!'});
+     if(typeof(db) === "function") {
+        await deleteUserFromPostgreSQLdb(req,res,id,db)
+        res.status(200).send({ message: "User was deleted successfully!" });
+     }
      
      if(typeof(db) === "object"){
          await deleteUserFromSqldb(req,res,id,db)
-         res.status(200).send({ message: "Project was deleted successfully!" });
+         res.status(200).send({ message: "User was deleted successfully!" });
      }
 
       if (typeof(db) === "string") res.status(200).json({message : 'Delete Route!'});
@@ -200,7 +206,15 @@ exports.deleteAll = async (req, res) => {
     
     const db = await db_connector();
 
-    if(typeof(db) === "function") res.status(200).json({message : 'Delete All Route!'});
+    if(typeof(db) === "function") {
+
+      await deleteAllUserFromPostgreSQLdb(db);
+
+      res.status(200).send({
+          message : "All Users has been deleted Successfully!"
+      })
+
+    }
 
 
     if(typeof(db) === "object") {
@@ -229,7 +243,15 @@ exports.findAllUpdated = async (req, res) => {
   try {
      const db = await db_connector();
 
-     if(typeof(db) === "function") res.status(200).json({message : 'Find All Updated Route!'});
+     if(typeof(db) === "function") {
+        const data = await findAllUpdatedUserFromPostgreSQLdb(db);
+
+        if (!data || Array.isArray(data) && data.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+        }
+
+        res.send(data)
+     }
 
    
      if(typeof(db) === "object"){
@@ -263,9 +285,16 @@ exports.updateUserStatusinBulk = async (req,res) => {
       }
      
      const db = await db_connector();
+
+     if(typeof(db) === "function"){
+        await findAllUpdatedUserFromPostgreSQLdb(db)
+        res.send({
+          message : "All User's has Subscribed Again!"
+        })
+     }
    
      if(typeof(db) === "object"){
-        const data = await updateUserinBulkFromSqldb(req,db)
+        const data = await updateUserinBulkFromSqldb(db)
         res.send(data)
      }
 

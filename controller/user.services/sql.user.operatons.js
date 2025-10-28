@@ -149,4 +149,4 @@ const updateUserinBulkFromSqldb = async (req,db) =>{
 }
 
 
-module.exports = {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
+module.exports = {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,deleteAllUserFromSqldb,findAllUpdatedUserFromSqldb,updateUserinBulkFromSqldb}

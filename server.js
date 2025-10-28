@@ -9,6 +9,10 @@ const logger = require("morgan");
 const app = express();
 const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
+const cors = require('cors');
+
+// LISTEN REQUEST FROM DIFFERENT ORIGIN
+app.use(cors())
 
 // CONFIG HELMET TO APPLY DEFAULT HEADER TO AN APP
 app.use(helmet())
