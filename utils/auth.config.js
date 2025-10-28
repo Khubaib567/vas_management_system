@@ -1,7 +1,10 @@
 // MIDDLEWARES FOR PROTECTING ROUTES
 const jwt = require('jsonwebtoken');
 const db_connector = require("../config/db.config");
-require('dotenv').config()
+if(process.env.ENV !== "production"){
+  require('dotenv').config({path : '../.secrets/.env'})
+}
+
 
 const auth = () =>  {
     return (req, res, next) => {
@@ -41,19 +44,33 @@ const authRole =  () => {
     if(typeof(db) === "function") {
         const result = await db.query("SELECT * FROM users WHERE id = $1" , [userId])
         user = result[0]
+        // console.log('User Role: ' , user)
+        // CHECK THE USER ROLE
+        if (!user || user.role !== process.env.ADMIN) {
+        // console.log("Admin: " , process.env.ADMIN)
+        return res.status(401).send({ message : 'Not allowed!' }) 
+        }
+
+        next()
+
     }
 
     if (typeof(db) === "object")  {
         const User = db.users;
         user = await User.findByPk(userId);
+        // CHECK THE USER ROLE
+        if (!user || user.role !== process.env.ADMIN) {
+        // console.log("Admin: " , process.env.ADMIN)
+        return res.status(401).send({ message : 'Not allowed!' }) 
+        }
+
+        next()
+
     }
+
+    if (typeof(db) === "undefined") return res.status(500).send({ message : 'Internal Server Error!' }) 
     
-    if (typeof(db) === "string")  // Find user based user_id from Mongodb!
-    
-    // console.log(user.role)
-    // CHECK THE USER ROLE
-    if (!user || user.role !== process.env.ADMIN) return res.status(401).send({ message : 'Not allowed!' }) 
-    next()
+    // if (typeof(db) === "string")  // Find user based user_id from Mongodb!
     }
 }
 

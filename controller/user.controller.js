@@ -1,6 +1,6 @@
 const db_connector = require("../config/db.config");
 const {createUserFromSqldb,getAllUserFromSqldb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
-const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb } = require("../controller/user.services/postgres.user.operatons")
+const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , updateUserFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
@@ -44,6 +44,8 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 
 try {
+
+ const { page = 1, limit = 10 } = req.query; // Default: page 1, limit 10
  const db = await db_connector();
   // console.log(typeof(db) === String)
 
@@ -51,12 +53,23 @@ try {
     
     const users = await getAllUserFromPostgreSQLdb(req,db);
 
+    // Calculate total items from the array's length
+    const totalItems = users.length;
+
+    // Calculate the start and end indices for slicing the array
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    // Use .slice() to get the users for the current page
+    const usersForPage = users.slice(startIndex, endIndex);
+
     res.status(200).json({
-        totalItems: users.count,
-        totalPages: Math.ceil(users.count / limit),
+        totalItems: totalItems,
+        totalPages: Math.ceil(totalItems / limit),
         currentPage: parseInt(page),
-        users: users.rows
+        users: usersForPage
     });
+
 
   }
   
@@ -93,11 +106,19 @@ exports.findOne = async (req, res) => {
     const id = req.params.id;
     const db = await db_connector();
 
-    if(typeof(db) === "function") res.status(200).json({message : 'Find One Route!'});
+    if(typeof(db) === "function") {
+
+      const user = await getOneUserFromPostgreSQLdb(id,db);
+      if (!user || Array.isArray(user) && user.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+      }
+
+      res.status(200).send(user)
+    }
 
     if(typeof(db) === "object") {
          const user = await getOneUserFromSqldb(id,db);
-        if (!user || Array.isArray(data) && data.length === 0) {
+        if (!user || Array.isArray(user) && user.length === 0) {
           return res.status(404).json({ message: 'No data found' });
         }
 
@@ -109,7 +130,7 @@ exports.findOne = async (req, res) => {
     
   } catch (err) {
     res.status(500).send({
-      message: "Error retrieving Project with project_id=" + id
+      message: err.message 
     });
   }
 };
@@ -121,7 +142,10 @@ exports.update = async (req, res) => {
     const id = req.params.id;
     const db = await db_connector();
 
-    if(typeof(db) === "function") res.status(200).json({message : 'Update Route!'});
+    if(typeof(db) === "function") {
+      const result = await updateUserFromPostreSQLdb(req,id,db)
+      res.status(200).send({ message: "User was updated successfully!" , data : result});
+    }
 
 
     if(typeof(db) === "object") {
@@ -140,7 +164,7 @@ exports.update = async (req, res) => {
     
   } catch (err) {
     res.status(500).send({
-      message: "Error updating project with id=" + id
+      message: err.message
     });
   }
   

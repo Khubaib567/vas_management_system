@@ -1,3 +1,4 @@
+const dns = require('dns');
 const {generateToken,removeToken} = require('../../utils/json.token')
 
 
@@ -5,11 +6,11 @@ const createUserFromPostgreSQLdb = async (req , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
-    const {name , operator , subscription , msisdn , services } = req.body;
+    const {name , operator , subscription , msisdn , services , role = null } = req.body;
 
     // SAVE USER IN THE DATABASE
 
-    await db.query('INSERT INTO users (name, operator, subscription , msisdn , services) VALUES ($1, $2, $3 , $4 , $5)', [name, operator, subscription , msisdn , services])
+    await db.query('INSERT INTO users (name, operator, subscription , msisdn , services , role) VALUES ($1, $2, $3 , $4 , $5 , $6)', [name, operator, subscription , msisdn , services , role])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
   
@@ -45,7 +46,7 @@ const getAllUserFromPostgreSQLdb = async (req , db) =>{
           [parseInt(limit), parseInt(offset)]
         );
 
-
+       
         return data
 
         
@@ -55,30 +56,28 @@ const getAllUserFromPostgreSQLdb = async (req , db) =>{
 }
 
 
-const getOneUserFromSqldb = async(id,db) => {
+const getOneUserFromPostgreSQLdb = async (id,db) => {
     try {
-    
-        const User = db.users;
-        const data = await User.findByPk(id, { include: User });
-    
-        if (!data || Array.isArray(data) && data.length === 0) {
-        return res.status(404).json({ message: 'No data found' });
-        }
+        // console.log('Id: ' , id)
+        const data = await db.query("SELECT * FROM users WHERE id = $1" , [id])
         return data;   
+        
     } catch (error) {
-        throw new Error("Error find the User : " , err.message)
+        throw new Error("Error during retrieve the user with " + id)
     }
 }
 
 
-const updateUserFromSqldb = async (req,id,db) => {
+const updateUserFromPostreSQLdb = async (req,id,db) => {
     
     try {
-     const User = db.users;
-     const data = await User.update(req.body, { where: { id: id } });
-      return data
+    //  console.log('ID: ', id)
+     const {name , operator = null , subscription = null , msisdn , services = null, role = null } = req.body;
+     await db.query('UPDATE users SET name = $1, operator = $2, subscription = $3 , msisdn = $4, services = $5 , role = $6 WHERE id = $7', [name , operator , subscription, msisdn , services , role , id])
+     const user = await db.query('SELECT * FROM users WHERE id = $1' , [id])
+     return user
     } catch (error) {
-      throw new Error("Error find the User : " , err.message)
+      throw new Error(error.message)
     }
 
 }
@@ -141,4 +140,4 @@ const updateUserinBulkFromSqldb = async (req,db) =>{
 }
 
 
-module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromSqldb,updateUserFromSqldb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
+module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromSqldb,updateUserinBulkFromSqldb}
