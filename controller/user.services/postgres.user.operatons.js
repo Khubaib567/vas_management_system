@@ -81,6 +81,17 @@ const getUserBasedOnMsisdnFromPostreSQLdb = async (msisdn,db) => {
 }
 
 
+const setOtpBasedOnMsisdnFromPostreSQLdb = async (msisdn,otp,db) =>{
+  try {
+
+    await db.query('UPDATE users SET otp = $1 WHERE msisdn = $2' , [otp,msisdn])
+    
+  } catch (error) {
+     throw new Error("Error during update the user's otp with mssidn " + msisdn)
+  }
+}
+
+
 
 const getOneUserFromPostgreSQLdb = async (id,db) => {
     try {
@@ -156,4 +167,4 @@ const updateUserinBulkFromPostgreSqldb = async (db) =>{
 }
 
 
-module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromPostgreSQLdb,deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb,updateUserinBulkFromPostgreSqldb , getUserBasedOnMsisdnFromPostreSQLdb}
+module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromPostgreSQLdb,deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb,updateUserinBulkFromPostgreSqldb , getUserBasedOnMsisdnFromPostreSQLdb , setOtpBasedOnMsisdnFromPostreSQLdb}

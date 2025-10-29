@@ -1,6 +1,6 @@
 const db_connector = require("../config/db.config");
 const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateUserFromSqldb , deleteUserFromSqldb , deleteAllUserFromSqldb , findAllUpdatedUserFromSqldb, updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
-const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb} = require("../controller/user.services/postgres.user.operatons")
+const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb , setOtpBasedOnMsisdnFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
@@ -128,6 +128,31 @@ exports.findUser = async (req,res) =>{
     
   }
 }
+
+exports.setOTP = async (req,res) =>{
+  try {
+    const { msisdn = null } = req.query;
+    const {otp} = req.body
+
+    const db = await db_connector();
+
+    if(typeof(db) === "function") {
+
+      await setOtpBasedOnMsisdnFromPostreSQLdb(msisdn,otp,db);
+      res.status(200).send({
+        message : "OTP has updated!"
+      })
+    }
+
+  } catch (error) {
+    res.status(500).send({
+      message: err.message 
+    });
+    
+  }
+}
+
+
 
 // FIND A SINGLE USER WITH AN ID
 exports.findOne = async (req, res) => {
