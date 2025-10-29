@@ -12,10 +12,10 @@ let router = require("express").Router();
 module.exports = app => {
     // CREATE A NEW USER
     router.post("/", users.create);
-    // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
-    router.use(auth())
     // GET A USER BASED ON MSSIDN
     router.get("/getuser" , users.findUser)
+    // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
+    router.use(auth())
     // SET OTP BASED ON MSISDN
     router.put("/setotp" , users.setOTP)
     // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
