@@ -36,18 +36,31 @@ const createUserFromPostgreSQLdb = async (req , res , db) => {
 const getAllUserFromPostgreSQLdb = async (req , db) =>{
     try {
 
-        const { page = 1, limit = 10 } = req.query; // Default: page 1, limit 10
+        const { page = 1, limit = 10 , msisdn = null } = req.query; // Default: page 1, limit 10
         const offset = (page - 1) * limit;
+
+        // console.log('Msisdn:' , msisdn)
+
+        if(msisdn) {
+
+          const data = await db.query(
+            'SELECT * FROM users WHERE msisdn = $1 ORDER BY id ASC LIMIT $2 OFFSET $3',
+            [msisdn , parseInt(limit), parseInt(offset)]
+          );
+
+          return data;
+
+        }
 
         // const data = await db.query('SELECT * FROM users ORDER BY id ASC');
 
        const data = await db.query(
           'SELECT * FROM users ORDER BY id ASC LIMIT $1 OFFSET $2',
           [parseInt(limit), parseInt(offset)]
-        );
+       );
 
        
-        return data
+      return data
 
         
     } catch (error) {
@@ -63,7 +76,7 @@ const getOneUserFromPostgreSQLdb = async (id,db) => {
         return data;   
         
     } catch (error) {
-        throw new Error("Error during retrieve the user with " + id)
+        throw new Error("Error during retrieve the user with mssidn " + mssidn)
     }
 }
 
