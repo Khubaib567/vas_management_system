@@ -69,6 +69,19 @@ const getAllUserFromPostgreSQLdb = async (req , db) =>{
 }
 
 
+const getUserBasedOnMsisdnFromPostreSQLdb = async (msisdn,db) => {
+    try {
+        // console.log('Id: ' , id)
+        const data = await db.query("SELECT * FROM users WHERE msisdn = $1" , [msisdn])
+        return data;   
+        
+    } catch (error) {
+        throw new Error("Error during retrieve the user with mssidn " + msisdn)
+    }
+}
+
+
+
 const getOneUserFromPostgreSQLdb = async (id,db) => {
     try {
         // console.log('Id: ' , id)
@@ -76,7 +89,7 @@ const getOneUserFromPostgreSQLdb = async (id,db) => {
         return data;   
         
     } catch (error) {
-        throw new Error("Error during retrieve the user with mssidn " + mssidn)
+        throw new Error("Error during retrieve the user with id " + id)
     }
 }
 
@@ -143,4 +156,4 @@ const updateUserinBulkFromPostgreSqldb = async (db) =>{
 }
 
 
-module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromPostgreSQLdb,deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb,updateUserinBulkFromPostgreSqldb}
+module.exports = {createUserFromPostgreSQLdb,getAllUserFromPostgreSQLdb,getOneUserFromPostgreSQLdb,updateUserFromPostreSQLdb,deleteUserFromPostgreSQLdb,deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb,updateUserinBulkFromPostgreSqldb , getUserBasedOnMsisdnFromPostreSQLdb}

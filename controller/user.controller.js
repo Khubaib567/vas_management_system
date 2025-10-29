@@ -1,6 +1,6 @@
 const db_connector = require("../config/db.config");
 const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateUserFromSqldb , deleteUserFromSqldb , deleteAllUserFromSqldb , findAllUpdatedUserFromSqldb, updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
-const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb} = require("../controller/user.services/postgres.user.operatons")
+const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb} = require("../controller/user.services/postgres.user.operatons")
 // CREATE AND SAVE A NEW USER
 exports.create = async (req, res) => {
   
@@ -64,6 +64,10 @@ try {
     // Use .slice() to get the users for the current page
     const usersForPage = users.slice(startIndex, endIndex);
 
+    if (!users || Array.isArray(users) && users.length === 0) {
+      return res.status(404).json({ message: 'No data found' });
+    }
+    
     res.status(200).json({
         totalItems: totalItems,
         totalPages: Math.ceil(totalItems / limit),
@@ -77,7 +81,8 @@ try {
   if (typeof(db) === "object") {
     const users = await getAllUserFromSqldb(req,db)
 
-    if (!users || users.count === 0) {
+   
+    if (!users || Array.isArray(users) && users.length === 0) {
       return res.status(404).json({ message: 'No data found' });
     }
 
@@ -99,6 +104,30 @@ try {
 
   
 };
+
+exports.findUser = async (req,res) =>{
+  try {
+    const { msisdn = null } = req.query;
+
+    const db = await db_connector();
+
+    if(typeof(db) === "function") {
+
+      const user = await getUserBasedOnMsisdnFromPostreSQLdb(msisdn,db);
+      if (!user || Array.isArray(user) && user.length === 0) {
+          return res.status(404).json({ message: 'No data found' });
+      }
+
+      res.status(200).send(user)
+    }
+
+  } catch (error) {
+    res.status(500).send({
+      message: err.message 
+    });
+    
+  }
+}
 
 // FIND A SINGLE USER WITH AN ID
 exports.findOne = async (req, res) => {
