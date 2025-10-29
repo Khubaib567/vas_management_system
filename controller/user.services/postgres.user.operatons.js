@@ -6,7 +6,7 @@ const createUserFromPostgreSQLdb = async (req , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
-    const {name , operator , subscription , msisdn , services , role = null } = req.body;
+    const {name , operator = null , subscription = null , msisdn , services = null, role = null } = req.body;
 
     // SAVE USER IN THE DATABASE
 
