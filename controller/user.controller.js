@@ -269,8 +269,6 @@ exports.deleteAll = async (req, res) => {
       })
 
     }
-
-
     if(typeof(db) === "object") {
         await deleteAllUserFromSqldb(db);
     
@@ -341,10 +339,8 @@ exports.updateUserStatusinBulk = async (req,res) => {
      const db = await db_connector();
 
      if(typeof(db) === "function"){
-        await findAllUpdatedUserFromPostgreSQLdb(db)
-        res.send({
-          message : "All User's has Subscribed Again!"
-        })
+        const result = await updateUserinBulkFromPostgreSqldb(db)
+        if(result)  res.send({message : "All User's has Subscribed Again!"})
      }
    
      if(typeof(db) === "object"){

@@ -1,5 +1,5 @@
 const dns = require('dns');
-const {generateToken,removeToken} = require('../../utils/json.token')
+const {generateToken,removeToken,refreshToken} = require('../../utils/json.token')
 
 
 const createUserFromPostgreSQLdb = async (req , res , db) => {
@@ -138,7 +138,7 @@ const deleteAllUserFromPostgreSQLdb = async (db) => {
         await db.query('DELETE FROM users');
         await removeToken(req, res);
     } catch (error) {
-      throw new Error("Error find the User : " , err.message)
+      throw new Error("Error find the User : " , error.message)
     }
 
 }
@@ -158,11 +158,20 @@ const updateUserinBulkFromPostgreSqldb = async (db) =>{
  
   try {
 
-    await db.query('UPDATE users SET subscription = true WHERE subscription = false')
+    await db.query('UPDATE users SET subscription = true WHERE subscription = false');
+    const users = await db.query('SELECT * FROM users WHERE subscription = true'); 
+
+    for (const user of users) {
+      //  console.log('userid' , user.id)
+       const token = await refreshToken(user.id)
+       await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user.id]);  
+    }
+
+    return true
   
     
   } catch (error) {
-     throw new Error("Error updating Users in bulk: " , error.message)
+     throw new Error(error.message)
   }
 }
 

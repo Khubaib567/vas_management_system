@@ -1,11 +1,16 @@
+if(process.env.ENV !== "production"){
+  require('dotenv').config({path : '../.secrets/.env'})
+}
+
+
 const jwt = require('jsonwebtoken')
-require('dotenv').config()
+
 
 // CONTROLLER FOR GENERATE TOKEN WHEN REGISTER REQUEST
 const generateToken = async (res, uuid)=> {
   let token;
   // console.log(userid)
-  token = jwt.sign( {id: uuid}, process.env.ACCESS_TOKEN, { expiresIn: 60 * 60});
+  token = jwt.sign( {id: uuid}, process.env.ACCESS_TOKEN, { expiresIn: 60 * 60 * 24});
   await res.cookie('jwt',token, {
     httpOnly:true,
     secure: process.env.NODE !== 'development', // HIDE COOKIES IN PRODUCTION
@@ -17,6 +22,22 @@ const generateToken = async (res, uuid)=> {
   token = token.replace('jwt=','')
   return token
 }
+
+const refreshToken = async (uuid) =>{
+
+  // console.log('uuid' , uuid)
+
+  // console.log('accessToken' , process.env.ACCESS_TOKEN)
+
+  let token;
+  token =  jwt.sign( {id: uuid}, process.env.ACCESS_TOKEN, { expiresIn: 60 * 60 * 24});
+
+  // console.log(token)
+  token = await token.replace('jwt=','')
+  return token
+
+}
+
 
 // CONTROLLER FOR REMOVE TOKEN WHEN LOGOUT REQUEST
 const removeToken =  async (req,res)=> {
@@ -33,4 +54,4 @@ const removeToken =  async (req,res)=> {
  
     
 
-module.exports = {generateToken,removeToken}
+module.exports = {generateToken,removeToken,refreshToken}
