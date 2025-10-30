@@ -9,6 +9,6 @@ export default async function handler(req, res) {
     
  } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Cron job failed" });
+    res.status(500).send({ message: "Cron job failed" });
  }
 }
