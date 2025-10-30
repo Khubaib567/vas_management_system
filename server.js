@@ -11,6 +11,8 @@ const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
 const cors = require('cors');
 
+app.use(limiter);
+
 // LISTEN REQUEST FROM DIFFERENT ORIGIN
 app.use(cors())
 
