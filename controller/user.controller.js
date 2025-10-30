@@ -339,7 +339,9 @@ exports.findAllUpdated = async (req, res) => {
  
 }
 
-exports.updateUserStatusinBulk = async (req,res) => {
+
+//! NOTE : THIS HANDLER IS JUST CRON JOB
+exports.updateUserStatusinBulk = async () => {
   try {
 
      if (!req.body) {
@@ -354,7 +356,8 @@ exports.updateUserStatusinBulk = async (req,res) => {
 
      if(typeof(db) === "function"){
         const result = await updateUserinBulkFromPostgreSqldb(db)
-        if(result)  res.send({message : "All User's has Subscribed Again!"})
+        // if(result)  res.send({message : "All User's has Subscribed Again!"})
+        if(result) return "All User's has Subscribed Again!"
      }
    
      if(typeof(db) === "object"){

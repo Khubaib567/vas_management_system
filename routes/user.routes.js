@@ -26,7 +26,7 @@ module.exports = app => {
     // RETRIEVE ALL PUBLISHED USERS'S PROJECTS
     router.get("/updated" , users.findAllUpdated);
     // RETRIEVE SERVICES WITH BULK SUBSCRIPTION
-    router.put("/bulk", users.updateUserStatusinBulk);
+    // router.put("/bulk", users.updateUserStatusinBulk);
     // RETRIEVE A SINGLE USER WITH ID
     router.get("/:id", cacheMiddleware ,  users.findOne);
     // UPDATE A USER WITH ID
