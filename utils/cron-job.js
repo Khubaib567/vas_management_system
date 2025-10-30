@@ -5,8 +5,10 @@ export default async function handler(req, res) {
 
     const data = await users.updateUserStatusinBulk(req,res)
     console.log("Cron job: " + data)
+    if(data)  res.send({message : "All User's has Subscribed Again!"})
     
  } catch (error) {
-   console.error("Error: " + error.message)
+    console.error(err);
+    res.status(500).json({ error: "Cron job failed" });
  }
 }
