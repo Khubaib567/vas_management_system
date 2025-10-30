@@ -344,13 +344,13 @@ exports.findAllUpdated = async (req, res) => {
 exports.updateUserStatusinBulk = async () => {
   try {
 
-     if (!req.body) {
-        return res.status(400).send({ message: "Content can not be empty!" });
-      }
+    //  if (!req.body) {
+    //     return res.status(400).send({ message: "Content can not be empty!" });
+    //   }
 
-      if (!req.body.subscription) {
-        return res.status(400).send({ message: "Bad Request!" });
-      }
+    //   if (!req.body.subscription) {
+    //     return res.status(400).send({ message: "Bad Request!" });
+    //   }
      
      const db = await db_connector();
 
@@ -360,12 +360,12 @@ exports.updateUserStatusinBulk = async () => {
         if(result) return "All User's has Subscribed Again!"
      }
    
-     if(typeof(db) === "object"){
-        const data = await updateUserinBulkFromSqldb(db)
-        res.send(data)
-     }
+    //  if(typeof(db) === "object"){
+    //     const data = await updateUserinBulkFromSqldb(db)
+    //     res.send(data)
+    //  }
 
-     if (typeof(db) === "string") res.status(200).json({message : 'Update Services bulk Route!'});
+    //  if (typeof(db) === "string") res.status(200).json({message : 'Update Services bulk Route!'});
   
   } catch (err) {
     res.status(500).send({
