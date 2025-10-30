@@ -3,7 +3,8 @@
   "crons": [
     {
       "path": "/utils/cron-job.js",
-      "schedule": "0 0 * * *"
+      "schedule": "5 23 * * *"
+
     }
   ]
 }
