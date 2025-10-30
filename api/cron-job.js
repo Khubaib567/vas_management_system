@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     if(data)  res.send({message : "All User's has Subscribed Again!"})
     
  } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).json({ error: "Cron job failed" });
  }
 }
