@@ -1,4 +1,4 @@
-const users = require("../../controller/user.controller");
+const users = require("../controller/user.controller");
 
 export default async function handler(req, res) {
  try {
