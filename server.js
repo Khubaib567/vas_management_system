@@ -11,7 +11,7 @@ const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
 const cors = require('cors');
 
-app.use('trust proxy' , 1)
+app.set('trust proxy' , 1)
 
 app.use(limiter);
 
