@@ -1,9 +1,20 @@
+
+if(process.env.NODE !== "production") {
+  require("dotenv").config({path:"../.secrets/.env"})
+}
+
+
+// require("../.secrets/.env")
+
+
 const db_connector = require("../config/db.config");
 const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateUserFromSqldb , deleteUserFromSqldb , deleteAllUserFromSqldb , findAllUpdatedUserFromSqldb, updateUserinBulkFromSqldb} = require("../controller/user.services/sql.user.operatons")
 const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb , setOtpBasedOnMsisdnFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
 const redis = require("redis");
 
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL
+});
 
 redisClient.on("error", (err) => console.error("Redis Client Error:", err));
 
