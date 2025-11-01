@@ -1,12 +1,22 @@
 // const express = require("express");
 // const axios = require("axios");
+
+
+if(process.env.NODE !== "production"){
+  require('dotenv').config({path:"../.secrets/.env"})
+}
+
+// require("../.secrets/.env")
+
 const redis = require("redis");
 
 // const app = express();
 // const PORT = 3000;
 
 // // ✅ Create Redis client
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL
+});
 
 redisClient.on("error", (err) => console.error("Redis Client Error:", err));
 
@@ -25,6 +35,7 @@ module.exports =  cacheMiddleware =  async (req, res, next) =>  {
        if (cacheData) {
          console.log("Cache hit");
          return res.json(JSON.parse(cacheData));
+
        }
        console.log("Cache miss");
     }
