@@ -12,15 +12,15 @@ const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateU
 const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb , setOtpBasedOnMsisdnFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
 const redis = require("redis");
 
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL
-});
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL
+// });
 
-redisClient.on("error", (err) => console.error("Redis Client Error:", err));
+// redisClient.on("error", (err) => console.error("Redis Client Error:", err));
 
-redisClient.connect().then(() => {
-  console.log("Connected to Redis");
-});
+// redisClient.connect().then(() => {
+//   console.log("Connected to Redis");
+// });
 
 
 
@@ -191,7 +191,7 @@ exports.findOne = async (req, res) => {
           return res.status(404).json({ message: 'No data found' });
       }
 
-      await redisClient.setEx(`:${id}`, 60, JSON.stringify(user));
+      // await redisClient.setEx(`:${id}`, 60, JSON.stringify(user));
 
       res.status(200).send(user)
     }
