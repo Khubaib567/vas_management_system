@@ -28,7 +28,7 @@ module.exports = app => {
     // RETRIEVE SERVICES WITH BULK SUBSCRIPTION
     // router.put("/bulk", users.updateUserStatusinBulk);
     // RETRIEVE A SINGLE USER WITH ID
-    router.get("/:id", cacheMiddleware ,  users.findOne);
+    router.get("/:id" ,  users.findOne);
     // UPDATE A USER WITH ID
     router.put("/:id", users.update);
     // DELETE A USER WITH ID
