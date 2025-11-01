@@ -13,7 +13,7 @@ let router = require("express").Router();
 module.exports = app => {
 
     // RETRIEVE SERVICES WITH BULK SUBSCRIPTION
-    router.put("/bulk", users.updateUserStatusinBulk);
+    router.get("/bulk", users.updateUserStatusinBulk);
     // CREATE A NEW USER
     router.post("/", users.create);
     // GET A USER BASED ON MSSIDN

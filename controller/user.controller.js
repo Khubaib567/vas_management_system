@@ -354,15 +354,7 @@ exports.findAllUpdated = async (req, res) => {
 //! NOTE : THIS HANDLER IS JUST CRON JOB
 exports.updateUserStatusinBulk = async (req,res) => {
   try {
-
-     if (!req.body) {
-        return res.status(400).send({ message: "Content can not be empty!" });
-      }
-
-      if (!req.body.subscription) {
-        return res.status(400).send({ message: "Bad Request!" });
-      }
-     
+    
      const db = await db_connector();
 
      if(typeof(db) === "function"){
