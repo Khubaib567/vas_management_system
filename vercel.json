@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "crons": [
+    {
+      "path": "/api/user/bulk",
+      "schedule": "0 0 * * *"
+
+    }
+  ]
+}
