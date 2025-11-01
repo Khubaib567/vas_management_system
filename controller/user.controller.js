@@ -352,7 +352,7 @@ exports.findAllUpdated = async (req, res) => {
 
 
 //! NOTE : THIS HANDLER IS JUST CRON JOB
-exports.updateUserStatusinBulk = async () => {
+exports.updateUserStatusinBulk = async (req,res) => {
   try {
 
      if (!req.body) {
