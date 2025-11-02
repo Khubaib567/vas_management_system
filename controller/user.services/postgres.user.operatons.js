@@ -154,12 +154,12 @@ const findAllUpdatedUserFromPostgreSQLdb = async (db) => {
 
 }
 
-const updateUserinBulkFromPostgreSqldb = async (db) =>{
+const updateUserinBulkFromPostgreSqldb = async (db , subscription) =>{
  
   try {
 
-    await db.query('UPDATE users SET subscription = true WHERE subscription = false');
-    const users = await db.query('SELECT * FROM users WHERE subscription = true'); 
+    await db.query('UPDATE users SET subscription = $1' , [subscription]);
+    const users = await db.query('SELECT * FROM users WHERE subscription = $1' , [subscription]); 
 
     for (const user of users) {
       //  console.log('userid' , user.id)

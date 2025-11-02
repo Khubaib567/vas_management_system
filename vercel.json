@@ -2,7 +2,7 @@
   "version": 2,
   "crons": [
     {
-      "path": "/api/user/bulk",
+      "path": "/api/user/bulk?subscription=true",
       "schedule": "0 0 * * *"
 
     }
