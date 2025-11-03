@@ -13,7 +13,7 @@ const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromP
 const redis = require("redis");
 
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
 redisClient.on("error", (err) => console.error("Redis Client Error:", err));
@@ -39,6 +39,8 @@ exports.create = async (req, res) => {
 
     if(typeof(db) === "function") {
       const user = await createUserFromPostgreSQLdb(req , res , db)
+
+      await redisClient.publish('channel', user);
 
       if (!user || Array.isArray(user) && user.length === 0) {
        return res.status(404).json({ message: "User not found after creation" });
@@ -132,6 +134,12 @@ exports.findUser = async (req,res) =>{
   try {
     const { msisdn = null } = req.query;
 
+    const subscriber = client.duplicate();
+
+    const message = await subscriber.subscribe('channel')
+
+    res.status(200).send(message)
+    
     const db = await db_connector();
 
     if(typeof(db) === "function") {

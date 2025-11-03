@@ -15,7 +15,7 @@ const redis = require("redis");
 
 // // ✅ Create Redis client
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
 // console.log("redis uri" , process.env.REDIS_URL)
@@ -23,7 +23,7 @@ const redisClient = redis.createClient({
 redisClient.on("error", (err) => console.error("Redis Client Error:", err));
 
 redisClient.connect().then(() => {
-  console.log("✅ Connected to Redis");
+  console.log("Connected to Redis");
 });
 
 // ✅ Middleware for caching

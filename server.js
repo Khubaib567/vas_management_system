@@ -10,6 +10,7 @@ const app = express();
 const {limiter} = require("./utils/rate.limiter.js");
 const helmet = require('helmet');
 const cors = require('cors');
+const redis = require('redis')
 
 app.set('trust proxy' , 1)
 
