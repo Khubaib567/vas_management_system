@@ -6,6 +6,8 @@ if(process.env.NODE !== "production"){
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = process.env.MONGODB_CONNECTION_URI;
 
+// console.log('MongoDB URI: ' , uri)
+
 
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version

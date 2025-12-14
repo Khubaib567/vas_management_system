@@ -12,6 +12,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const redis = require('redis')
 
+
 app.set('trust proxy' , 1)
 
 app.use(limiter);
@@ -44,9 +45,13 @@ require('./routes/user.routes.js')(app)
 require('./routes/service.routes.js')(app)
 
 // CONFIG AN EXPRESS APP ON LOCALHOST IN DEVELOPMENT ENV.
-app.listen(process.env.PORT , function () {
-  console.log(`Server is listening on %d in %s environment`, this.address().port, app.settings.env)
-})
+app.listen(process.env.PORT || 3000, function () {
+  const { port, address } = this.address();
+  const host = address === '::' ? 'localhost' : address;
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+
+  console.log(`Server running at ${protocol}://${host}:${port}`);
+});
 
 
 
