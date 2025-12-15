@@ -36,7 +36,6 @@ exports.create = async (req, res) => {
     const body = {
         name : req.body.name,
         msisdn : req.body.msisdn,
-        subscription : true
     }
 
 
