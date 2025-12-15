@@ -2,21 +2,24 @@ const dns = require('dns');
 const {generateToken,removeToken,refreshToken} = require('../../utils/json.token')
 
 
-const createUserFromPostgreSQLdb = async (body , res , db) => {
+const createUserFromPostgreSQLdb = async (req , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
-    const {name , operator = null , subscription = false , msisdn , services = null, role = null } = body;
+    const {name , operator = null , subscription = false , msisdn , services = null, role = null } = req.body;
 
     // console.log('Name: ' , name)
+    // console.log('Msisdn: ' , msisdn)
+
+
     // SAVE USER IN THE DATABASE
 
-    await db.query('INSERT INTO users (name, msisdn ) VALUES ($1, $2 )', [name, msisdn ])
+    await db.query('INSERT INTO users (name, msisdn) VALUES ($1, $2)', [name, msisdn])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
   
     const user = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
-    // console.log("User Id: " , user[0].id)
+    console.log("User Id: " , user[0].id)
 
    
     // GENERATE TOKEN 

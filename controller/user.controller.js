@@ -33,23 +33,23 @@ exports.create = async (req, res) => {
     // console.log('Reqbody: ' , req.body)
     // const body = JSON.stringify(req.body)
 
-    const body = {
-        name : req.body.name,
-        msisdn : req.body.msisdn
-    }
+    // const body = {
+    //     name : req.body.name,
+    //     msisdn : req.body.msisdn
+    // }
 
 
-    console.log('Reqbody: ' , body)
+    // console.log('Reqbody: ' , body)
 
-    if (!body) {
+    if (!req.body) {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
 
     if(typeof(db) === "function") {
-      const user = await createUserFromPostgreSQLdb(body , res , db)
+      const user = await createUserFromPostgreSQLdb(req , res , db)
 
-      await redisClient.publish('channel', user);
+      // await redisClient.publish('channel', user);
 
       if (!user || Array.isArray(user) && user.length === 0) {
        return res.status(404).json({ message: "User not found after creation" });
