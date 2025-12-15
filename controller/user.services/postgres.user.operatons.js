@@ -2,15 +2,16 @@ const dns = require('dns');
 const {generateToken,removeToken,refreshToken} = require('../../utils/json.token')
 
 
-const createUserFromPostgreSQLdb = async (req , res , db) => {
+const createUserFromPostgreSQLdb = async (body , res , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
-    const {name , operator = null , subscription = false , msisdn , services = null, role = null } = req.body;
+    const {name , operator = null , subscription = false , msisdn , services = null, role = null } = body;
 
+    // console.log('Name: ' , name)
     // SAVE USER IN THE DATABASE
 
-    await db.query('INSERT INTO users (name, operator, subscription , msisdn , services , role) VALUES ($1, $2, $3 , $4 , $5 , $6)', [name, operator, subscription , msisdn , services , role])
+    await db.query('INSERT INTO users (name, msisdn ) VALUES ($1, $2 )', [name, msisdn ])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
   
@@ -22,11 +23,11 @@ const createUserFromPostgreSQLdb = async (req , res , db) => {
     const token = await generateToken(res, user[0].id);
     // console.log("Token: ", token)
     // UPDATE THE USER WITH INSERT THE TOKEN
-    await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
+    // await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
 
-    const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    // const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
     // console.log('UpdatedUser: ' , updatedUser)
-    return updatedUser;
+    return user;
         
     } catch (error) {
         throw new Error(error.message);

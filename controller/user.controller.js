@@ -31,14 +31,23 @@ exports.create = async (req, res) => {
 
     const db = await db_connector();
     // console.log('Reqbody: ' , req.body)
+    // const body = JSON.stringify(req.body)
 
-    if (!req.body) {
+    const body = {
+        name : req.body.name,
+        msisdn : req.body.msisdn
+    }
+
+
+    console.log('Reqbody: ' , body)
+
+    if (!body) {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
 
     if(typeof(db) === "function") {
-      const user = await createUserFromPostgreSQLdb(req , res , db)
+      const user = await createUserFromPostgreSQLdb(body , res , db)
 
       await redisClient.publish('channel', user);
 

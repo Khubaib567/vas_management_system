@@ -14,7 +14,7 @@ const User = sequelize.define("user", {
     token : {
       type: DataTypes.STRING,
     },
-    subscribe: {
+    subscription: {
       type: DataTypes.BOOLEAN,
   },
     createdAt: {
