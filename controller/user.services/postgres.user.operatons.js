@@ -14,23 +14,23 @@ const createUserFromPostgreSQLdb = async (body , res , db) => {
 
     // SAVE USER IN THE DATABASE
 
-    await db.query('INSERT INTO users (name, msisdn , subscription) VALUES ($1, $2 , $3)', [name, msisdn , subscription])
+    await db.query('INSERT INTO users (name, msisdn , subscription  ) VALUES ($1, $2 , $3  )', [name, msisdn , subscription])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
   
     const user = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
-    console.log("User Id: " , user[0].id)
+    // console.log("User Id: " , user[0].id)
 
    
     // GENERATE TOKEN 
     const token = await generateToken(res, user[0].id);
     // console.log("Token: ", token)
     // UPDATE THE USER WITH INSERT THE TOKEN
-    // await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
+    await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
 
-    // const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
     // console.log('UpdatedUser: ' , updatedUser)
-    return user;
+    return updatedUser;
         
     } catch (error) {
         throw new Error(error.message);
