@@ -17,11 +17,11 @@ module.exports = app => {
     // CREATE A NEW USER
     router.post("/", users.create);
     // GET A USER BASED ON MSSIDN
-    router.get("/getuser" , users.findUser)
+    router.get("/getuser/:msisdn" , users.findUser)
     // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
     router.use(auth())
     // SET OTP BASED ON MSISDN
-    router.put("/setotp" , users.setOTP)
+    router.put("/setotp/:msisdn" , users.setOTP)
     // APPLY MIDDLEWARES EXCEPT FIRST ROUTE 
     router.use(auth() , authRole())
     // RETRIEVE ALL USERS
@@ -29,7 +29,7 @@ module.exports = app => {
     // RETRIEVE ALL PUBLISHED USERS'S PROJECTS
     router.get("/updated" , users.findAllUpdated);
     // RETRIEVE A SINGLE USER WITH ID
-    router.get("/:id"  , cacheMiddleware , users.findOne);
+    router.get("/:id"  , users.findOne);
     // UPDATE A USER WITH ID
     router.put("/:id", users.update);
     // DELETE A USER WITH ID

@@ -12,15 +12,17 @@ const {createUserFromSqldb , getAllUserFromSqldb , getOneUserFromSqldb , updateU
 const {createUserFromPostgreSQLdb , getAllUserFromPostgreSQLdb , getOneUserFromPostgreSQLdb  , getUserBasedOnMsisdnFromPostreSQLdb ,updateUserFromPostreSQLdb , deleteUserFromPostgreSQLdb , deleteAllUserFromPostgreSQLdb , findAllUpdatedUserFromPostgreSQLdb , updateUserinBulkFromPostgreSqldb , setOtpBasedOnMsisdnFromPostreSQLdb} = require("../controller/user.services/postgres.user.operatons")
 const redis = require("redis");
 
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL || 'redis://localhost:6379'
+// });
 
-redisClient.on("error", (err) => console.error("Redis Client Error:", err));
+// console.log("RedisClient: " , redisClient)
 
-redisClient.connect().then(() => {
-  console.log("Connected to Redis");
-});
+// redisClient.on("error", (err) => console.error("Redis Client Error:", err));
+
+// redisClient.connect().then(() => {
+//   console.log("Connected to Redis");
+// });
 
 
 
@@ -141,13 +143,15 @@ try {
 
 exports.findUser = async (req,res) =>{
   try {
-    const { msisdn = null } = req.query;
+    const  { msisdn = null } = req.params;
 
-    const subscriber = client.duplicate();
+    console.log("msisdn: " , msisdn)
 
-    const message = await subscriber.subscribe('channel')
+    // const subscriber = client.duplicate();
 
-    res.status(200).send(message)
+    // const message = await subscriber.subscribe('channel')
+
+    // res.status(200).send(message)
     
     const db = await db_connector();
 
@@ -171,7 +175,8 @@ exports.findUser = async (req,res) =>{
 
 exports.setOTP = async (req,res) =>{
   try {
-    const { msisdn = null } = req.query;
+    const  { msisdn = null } = req.params;
+    
     const {otp} = req.body
 
     const db = await db_connector();
@@ -208,7 +213,7 @@ exports.findOne = async (req, res) => {
           return res.status(404).json({ message: 'No data found' });
       }
 
-      await redisClient.setEx(`:${id}`, 60, JSON.stringify(user));
+      // await redisClient.setEx(`:${id}`, 60, JSON.stringify(user));
 
       res.status(200).send(user)
     }

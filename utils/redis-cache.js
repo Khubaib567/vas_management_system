@@ -14,17 +14,17 @@ const redis = require("redis");
 // const PORT = 3000;
 
 // // ✅ Create Redis client
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL || 'redis://localhost:6379'
+// });
 
-// console.log("redis uri" , process.env.REDIS_URL)
+// // console.log("redis uri" , process.env.REDIS_URL)
 
-redisClient.on("error", (err) => console.error("Redis Client Error:", err));
+// redisClient.on("error", (err) => console.error("Redis Client Error:", err));
 
-redisClient.connect().then(() => {
-  console.log("Connected to Redis");
-});
+// redisClient.connect().then(() => {
+//   console.log("Connected to Redis");
+// });
 
 // ✅ Middleware for caching
 module.exports =  cacheMiddleware =  async (req, res, next) =>  {
