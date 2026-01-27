@@ -191,7 +191,7 @@ exports.setOTP = async (req,res) =>{
 
   } catch (error) {
     res.status(500).send({
-      message: err.message 
+      message: error.message 
     });
     
   }
