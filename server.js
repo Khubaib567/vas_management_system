@@ -13,9 +13,11 @@ const cors = require('cors');
 const redis = require('redis')
 
 
-// app.set('trust proxy' , 1)
+app.set('trust proxy' , 1)
 
-app.use(limiter);
+// APPLY RATE-LIMIT AS MIDDLEWARE
+app.use(limiter)
+
 
 // LISTEN REQUEST FROM DIFFERENT ORIGIN
 app.use(cors())
@@ -32,12 +34,10 @@ app.use(express.json());
 // PARSE REQUESTS OF CONTENT-TYPE - APPLICATION/X-WWW-FORM-URLENCODED
 app.use(express.urlencoded({ extended: true }));
 
-// APPLY RATE-LIMIT AS MIDDLEWARE
-app.use(limiter)
 
 // SIMPLE ROUTE
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to CRUD application." });
+  res.json({ message: "Redirecting to Main Server..!" });
 });
 
 // SET PORT, LISTEN FOR REQUESTS
@@ -50,7 +50,7 @@ app.listen(process.env.PORT || 3000, function () {
   const host = address === '::' ? 'localhost' : address;
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
-  console.log(`Server running at ${protocol}://${host}:${port}`);
+  console.log(`Internal Node Server running at ${protocol}://${host}:${port}`);
 });
 
 

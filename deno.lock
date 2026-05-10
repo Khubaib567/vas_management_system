@@ -1,0 +1,38 @@
+{
+  "version": "5",
+  "redirects": {
+    "https://deno.land/std/http/server.ts": "https://deno.land/std@0.224.0/http/server.ts"
+  },
+  "remote": {
+    "https://deno.land/std@0.224.0/async/delay.ts": "f90dd685b97c2f142b8069082993e437b1602b8e2561134827eeb7c12b95c499",
+    "https://deno.land/std@0.224.0/http/server.ts": "f9313804bf6467a1704f45f76cb6cd0a3396a3b31c316035e6a4c2035d1ea514"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@neondatabase/serverless@^1.0.2",
+        "npm:axios@^1.13.0",
+        "npm:connect-redis@9",
+        "npm:cors@^2.8.5",
+        "npm:crypto@^1.0.1",
+        "npm:dns-query@~0.11.2",
+        "npm:dns@~0.2.2",
+        "npm:dotenv@^16.0.2",
+        "npm:express-graphql@0.12",
+        "npm:express-paginate@^1.0.2",
+        "npm:express-rate-limit@^7.5.0",
+        "npm:express-session@^1.18.2",
+        "npm:express@^4.21.2",
+        "npm:helmet@^8.1.0",
+        "npm:ioredis@^5.8.2",
+        "npm:jsonwebtoken@^9.0.2",
+        "npm:mongodb@^6.20.0",
+        "npm:morgan@^1.10.0",
+        "npm:mysql2@^2.3.3",
+        "npm:rate-limit-redis@^4.2.3",
+        "npm:redis@^5.9.0",
+        "npm:sequelize@^6.21.4"
+      ]
+    }
+  }
+}
