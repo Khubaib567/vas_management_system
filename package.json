@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "reverse_proxy": "deno run --allow-net proxy.js",
+    "reverse_proxy": "deno run --watch --allow-net --allow-read --allow-env proxy.js",
     "client": "node --watch client.js"
   },
   "keywords": [],

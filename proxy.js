@@ -1,12 +1,27 @@
-// CONFIG ENVIRONMENT VARIABLES.
-if(process.env.ENV !== "production"){
-  require('dotenv').config({path : './.secrets/.env'})
-}
+// =========================
+// LOAD ENV VARIABLES
+// =========================
 
+import "https://deno.land/std@0.224.0/dotenv/load.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
-import { serve } from "https://deno.land/std/http/server.ts";
+// =========================
+// CONFIG
+// =========================
 
-const NODE_BACKEND = process.env.PROXY_LOCALHOST;
+const NODE_BACKEND =
+  Deno.env.get("PROXY_LOCALHOST") ||
+  "http://localhost:3000";
+
+const PORT = Number(
+  Deno.env.get("DENO_PORT") || 8080
+);
+
+// =========================
+// START SERVER
+// =========================
+
+console.log(`Reverse proxy running on :${PORT}`);
 
 serve(async (req) => {
 
@@ -18,20 +33,23 @@ serve(async (req) => {
     req.headers.get("x-forwarded-for") ||
     "unknown";
 
-  console.log(`[${ip}] ${req.method} ${req.url}`);
+  console.log(
+    `[${ip}] ${req.method} ${req.url}`
+  );
 
   // BLOCK SUSPICIOUS USER AGENTS
-  const ua = req.headers.get("user-agent") || "";
+  const ua =
+    req.headers.get("user-agent") || "";
 
   const blockedAgents = [
     "sqlmap",
     "nikto",
     "curl",
-    "wget"
+    "wget",
   ];
 
   if (
-    blockedAgents.some(agent =>
+    blockedAgents.some((agent) =>
       ua.toLowerCase().includes(agent)
     )
   ) {
@@ -41,7 +59,7 @@ serve(async (req) => {
   }
 
   // =========================
-  // FORWARD REQUEST
+  // BUILD PROXY URL
   // =========================
 
   const url = new URL(req.url);
@@ -49,9 +67,12 @@ serve(async (req) => {
   const proxyUrl =
     `${NODE_BACKEND}${url.pathname}${url.search}`;
 
+  // =========================
+  // FORWARD HEADERS
+  // =========================
+
   const headers = new Headers(req.headers);
 
-  // FORWARD REAL CLIENT IP
   headers.set(
     "x-forwarded-for",
     ip
@@ -64,6 +85,10 @@ serve(async (req) => {
 
   try {
 
+    // =========================
+    // FORWARD REQUEST
+    // =========================
+
     const response = await fetch(proxyUrl, {
       method: req.method,
       headers,
@@ -72,18 +97,25 @@ serve(async (req) => {
         req.method === "HEAD"
           ? undefined
           : req.body,
+      redirect: "manual",
     });
+
+    // =========================
+    // RESPONSE SECURITY
+    // =========================
 
     const responseHeaders =
       new Headers(response.headers);
 
     // HIDE EXPRESS SIGNATURE
-    responseHeaders.delete("x-powered-by");
+    responseHeaders.delete(
+      "x-powered-by"
+    );
 
-    // EXTRA SECURITY HEADERS
+    // SECURITY HEADERS
     responseHeaders.set(
       "Strict-Transport-Security",
-      "max-age=31536000"
+      "max-age=31536000; includeSubDomains"
     );
 
     responseHeaders.set(
@@ -96,6 +128,11 @@ serve(async (req) => {
       "nosniff"
     );
 
+    responseHeaders.set(
+      "Referrer-Policy",
+      "no-referrer"
+    );
+
     return new Response(response.body, {
       status: response.status,
       headers: responseHeaders,
@@ -103,13 +140,19 @@ serve(async (req) => {
 
   } catch (err) {
 
-    console.error(err);
+    console.error(
+      "Proxy Error:",
+      err
+    );
 
     return new Response(
       "Bad Gateway",
-      { status: 502 }
+      {
+        status: 502,
+      }
     );
   }
+
 }, {
-  port: 8080,
+  port: PORT,
 });

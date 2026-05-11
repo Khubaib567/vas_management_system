@@ -41,8 +41,8 @@ app.get("/", (req, res) => {
 });
 
 // SET PORT, LISTEN FOR REQUESTS
-require('./routes/user.routes.js')(app)
-require('./routes/service.routes.js')(app)
+// require('./routes/user.routes.js')(app)
+// require('./routes/service.routes.js')(app)
 
 // CONFIG AN EXPRESS APP ON LOCALHOST IN DEVELOPMENT ENV.
 app.listen(process.env.PORT || 3000, function () {
