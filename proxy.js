@@ -1,13 +1,20 @@
-// =========================
+// ======================================================
 // LOAD ENV VARIABLES
-// =========================
+// ======================================================
 
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
-// =========================
+const configText = await Deno.readTextFile(
+  "./deno.json"
+);
+
+const securityConfig =
+  JSON.parse(configText);
+
+// ======================================================
 // CONFIG
-// =========================
+// ======================================================
 
 const NODE_BACKEND =
   Deno.env.get("PROXY_LOCALHOST") ||
@@ -17,61 +24,352 @@ const PORT = Number(
   Deno.env.get("DENO_PORT") || 8080
 );
 
-// =========================
-// START SERVER
-// =========================
+// ======================================================
+// SECURITY CONFIGURATION
+// ======================================================
 
-console.log(`Reverse proxy running on :${PORT}`);
+// Trusted Origins (CORS + CSP validation)
+const ALLOWED_ORIGINS = new Set([
+  "https://vas-management-system.vercel.app"
+]);
+
+// Trusted Methods
+const ALLOWED_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "OPTIONS",
+];
+
+// Trusted Request Headers
+const ALLOWED_HEADERS = [
+  "content-type",
+  "authorization",
+  "x-requested-with",
+  "x-request-id",
+  "x-user-role",
+];
+
+// ======================================================
+// BLOCKED USER AGENTS
+// ======================================================
+//
+// curl + python-requests are blocked
+// EXCEPT when:
+// 1. request-id exists
+// 2. user role === admin
+// 3. request-id exists inside deno.json
+//
+// ======================================================
+
+const BLOCKED_AGENTS = [
+  "sqlmap",
+  "nikto",
+  "wget",
+  "masscan",
+  "nmap",
+];
+
+// Restricted agents
+const RESTRICTED_AGENTS = [
+  "curl",
+  "python-requests",
+];
+
+// ======================================================
+// DENO PERMISSION API CHECK
+// ======================================================
+
+const readPermission =
+  await Deno.permissions.query({
+    name: "read",
+    path: "./deno.json",
+  });
+
+if (readPermission.state !== "granted") {
+
+  console.error(
+    "Read permission denied for deno.json"
+  );
+
+  Deno.exit(1);
+}
+
+// ======================================================
+// LOOKUP TABLE (IP WHITELIST)
+// ======================================================
+
+const kv = await Deno.openKv();
+
+// Seed allowed IPs
+await kv.set(["allowed_ips", "127.0.0.1"], true);
+await kv.set(["allowed_ips", "192.168.1.10"], true);
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+function getClientIP(Request) {
+
+  const forwarded =
+    req.headers.get("x-forwarded-for");
+
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+
+  return "unknown";
+}
+
+async function isAllowedIP(ip) {
+
+  const result = await kv.get<boolean>([
+    "allowed_ips",
+    ip,
+  ]);
+
+  return result.value === true;
+}
+
+function hasValidOrigin(Request) {
+
+  const origin =
+    req.headers.get("origin");
+
+  // Allow server-to-server traffic
+  if (!origin) {
+    return true;
+  }
+
+  return ALLOWED_ORIGINS.has(origin);
+}
+
+function hasValidHeaders(Request) {
+
+  const requestHeaders =
+    req.headers;
+
+  for (const header of requestHeaders.keys()) {
+
+    const normalized =
+      header.toLowerCase();
+
+    // Ignore browser/system headers
+    if (
+      normalized.startsWith("sec-") ||
+      normalized.startsWith("x-forwarded") ||
+      normalized === "host" ||
+      normalized === "connection" ||
+      normalized === "accept" ||
+      normalized === "user-agent" ||
+      normalized === "origin" ||
+      normalized === "referer" ||
+      normalized === "content-length"
+    ) {
+      continue;
+    }
+
+    if (!ALLOWED_HEADERS.includes(normalized)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function hasValidMethod(Request) {
+
+  return ALLOWED_METHODS.includes(
+    req.method.toUpperCase()
+  );
+}
+
+// ======================================================
+// ADMIN VALIDATION
+// ======================================================
+
+function isAdminRequest(Request) {
+
+  const requestId =
+    req.headers.get("x-request-id");
+
+  const role =
+    req.headers.get("x-user-role");
+
+  if (!requestId || !role) {
+    return false;
+  }
+
+  const adminUsers =
+    securityConfig.adminUsers || [];
+
+  return adminUsers.some(
+    (user) =>
+      user.requestId === requestId &&
+      user.role === role &&
+      role === "admin"
+  );
+}
+
+// ======================================================
+// USER AGENT VALIDATION
+// ======================================================
+
+function hasValidUserAgent(Request) {
+
+  const ua = (
+    req.headers.get("user-agent") || ""
+  ).toLowerCase();
+
+  // ====================================================
+  // HARD BLOCKED AGENTS
+  // ====================================================
+
+  const blocked =
+    BLOCKED_AGENTS.some((agent) =>
+      ua.includes(agent)
+    );
+
+  if (blocked) {
+    return false;
+  }
+
+  // ====================================================
+  // RESTRICTED AGENTS
+  // ====================================================
+
+  const restricted =
+    RESTRICTED_AGENTS.some((agent) =>
+      ua.includes(agent)
+    );
+
+  // Allow curl/python-requests only for admins
+  if (restricted) {
+    return isAdminRequest(req);
+  }
+
+  return true;
+}
+
+// ======================================================
+// START SERVER
+// ======================================================
+
+console.log(
+  `Secure Reverse Proxy Running :${PORT}`
+);
+
+// ======================================================
+// MAIN SERVER
+// ======================================================
 
 serve(async (req) => {
 
-  // =========================
-  // BASIC SECURITY FILTERS
-  // =========================
+  // ====================================================
+  // EXTRACT CLIENT DETAILS
+  // ====================================================
 
-  const ip =
-    req.headers.get("x-forwarded-for") ||
-    "unknown";
+  const ip = getClientIP(req);
 
   console.log(
     `[${ip}] ${req.method} ${req.url}`
   );
 
-  // BLOCK SUSPICIOUS USER AGENTS
-  const ua =
-    req.headers.get("user-agent") || "";
+  // ====================================================
+  // HYBRID SECURITY LAYER
+  // ====================================================
 
-  const blockedAgents = [
-    "sqlmap",
-    "nikto",
-    "curl",
-    "wget",
-  ];
+  // 1. IP WHITELIST VALIDATION
+  const allowedIP =
+    await isAllowedIP(ip);
 
-  if (
-    blockedAgents.some((agent) =>
-      ua.toLowerCase().includes(agent)
-    )
-  ) {
-    return new Response("Forbidden", {
-      status: 403,
-    });
+  if (!allowedIP) {
+
+    console.warn(
+      `Blocked Unknown IP : ${ip}`
+    );
+
+    return new Response(
+      "Access Denied",
+      {
+        status: 403,
+      }
+    );
   }
 
-  // =========================
-  // BUILD PROXY URL
-  // =========================
+  // 2. USER AGENT VALIDATION
+  if (!hasValidUserAgent(req)) {
+
+    console.warn(
+      `Blocked Suspicious Agent : ${ip}`
+    );
+
+    return new Response(
+      "Forbidden",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // 3. METHOD VALIDATION
+  if (!hasValidMethod(req)) {
+
+    return new Response(
+      "Method Not Allowed",
+      {
+        status: 405,
+      }
+    );
+  }
+
+  // 4. ORIGIN VALIDATION
+  if (!hasValidOrigin(req)) {
+
+    console.warn(
+      `Blocked Invalid Origin : ${ip}`
+    );
+
+    return new Response(
+      "Invalid Origin",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // 5. HEADER POLICY VALIDATION
+  if (!hasValidHeaders(req)) {
+
+    console.warn(
+      `Blocked Invalid Headers : ${ip}`
+    );
+
+    return new Response(
+      "Invalid Request Headers",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // ====================================================
+  // BUILD TARGET URL
+  // ====================================================
 
   const url = new URL(req.url);
 
   const proxyUrl =
     `${NODE_BACKEND}${url.pathname}${url.search}`;
 
-  // =========================
+  // ====================================================
   // FORWARD HEADERS
-  // =========================
+  // ====================================================
 
-  const headers = new Headers(req.headers);
+  const headers =
+    new Headers(req.headers);
 
   headers.set(
     "x-forwarded-for",
@@ -83,39 +381,54 @@ serve(async (req) => {
     "https"
   );
 
+  headers.set(
+    "x-real-ip",
+    ip
+  );
+
   try {
 
-    // =========================
-    // FORWARD REQUEST
-    // =========================
+    // ==================================================
+    // PROXY REQUEST
+    // ==================================================
 
-    const response = await fetch(proxyUrl, {
-      method: req.method,
-      headers,
-      body:
-        req.method === "GET" ||
-        req.method === "HEAD"
-          ? undefined
-          : req.body,
-      redirect: "manual",
-    });
+    const response = await fetch(
+      proxyUrl,
+      {
+        method: req.method,
+        headers,
+        body:
+          req.method === "GET" ||
+          req.method === "HEAD"
+            ? undefined
+            : req.body,
+        redirect: "manual",
+      }
+    );
 
-    // =========================
-    // RESPONSE SECURITY
-    // =========================
+    // ==================================================
+    // HARDEN RESPONSE HEADERS
+    // ==================================================
 
     const responseHeaders =
       new Headers(response.headers);
 
-    // HIDE EXPRESS SIGNATURE
+    // Hide Framework Signature
     responseHeaders.delete(
       "x-powered-by"
     );
 
+    responseHeaders.delete(
+      "server"
+    );
+
+    // ==================================================
     // SECURITY HEADERS
+    // ==================================================
+
     responseHeaders.set(
       "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
+      "max-age=31536000; includeSubDomains; preload"
     );
 
     responseHeaders.set(
@@ -130,13 +443,72 @@ serve(async (req) => {
 
     responseHeaders.set(
       "Referrer-Policy",
-      "no-referrer"
+      "strict-origin-when-cross-origin"
     );
 
-    return new Response(response.body, {
-      status: response.status,
-      headers: responseHeaders,
-    });
+    responseHeaders.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()"
+    );
+
+    responseHeaders.set(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join("; ")
+    );
+
+    // ==================================================
+    // CORS POLICY
+    // ==================================================
+
+    const origin =
+      req.headers.get("origin");
+
+    if (
+      origin &&
+      ALLOWED_ORIGINS.has(origin)
+    ) {
+
+      responseHeaders.set(
+        "Access-Control-Allow-Origin",
+        origin
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Methods",
+        ALLOWED_METHODS.join(", ")
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Headers",
+        ALLOWED_HEADERS.join(", ")
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Credentials",
+        "true"
+      );
+    }
+
+    // ==================================================
+    // RETURN SECURED RESPONSE
+    // ==================================================
+
+    return new Response(
+      response.body,
+      {
+        status: response.status,
+        headers: responseHeaders,
+      }
+    );
 
   } catch (err) {
 
