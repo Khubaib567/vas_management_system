@@ -1,57 +1,533 @@
-// CONFIG ENVIRONMENT VARIABLES.
-if(process.env.ENV !== "production"){
-  require('dotenv').config({path : './.secrets/.env'})
+// ======================================================
+// LOAD ENV VARIABLES
+// ======================================================
+
+import "https://deno.land/std@0.224.0/dotenv/load.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+
+const configText = await Deno.readTextFile(
+  "./deno.json"
+);
+
+const securityConfig =
+  JSON.parse(configText);
+
+// ======================================================
+// CONFIG
+// ======================================================
+
+const NODE_BACKEND =
+  Deno.env.get("PROXY_LOCALHOST") ||
+  "http://localhost:3000";
+
+const PORT = Number(
+  Deno.env.get("DENO_PORT") || 8080
+);
+
+// ======================================================
+// SECURITY CONFIGURATION
+// ======================================================
+
+// Trusted Origins (CORS + CSP validation)
+const ALLOWED_ORIGINS = new Set([
+  "https://vas-management-system.vercel.app"
+]);
+
+// Trusted Methods
+const ALLOWED_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "OPTIONS",
+];
+
+// Trusted Request Headers
+const ALLOWED_HEADERS = [
+  "content-type",
+  "authorization",
+  "x-requested-with",
+  "x-request-id",
+  "x-user-role",
+];
+
+// ======================================================
+// BLOCKED USER AGENTS
+// ======================================================
+//
+// curl + python-requests are blocked
+// EXCEPT when:
+// 1. request-id exists
+// 2. user role === admin
+// 3. request-id exists inside deno.json
+//
+// ======================================================
+
+const BLOCKED_AGENTS = [
+  "sqlmap",
+  "nikto",
+  "wget",
+  "masscan",
+  "nmap",
+];
+
+// Restricted agents
+const RESTRICTED_AGENTS = [
+  "curl",
+  "python-requests",
+];
+
+// ======================================================
+// DENO PERMISSION API CHECK
+// ======================================================
+
+const readPermission =
+  await Deno.permissions.query({
+    name: "read",
+    path: "./deno.json",
+  });
+
+if (readPermission.state !== "granted") {
+
+  console.error(
+    "Read permission denied for deno.json"
+  );
+
+  Deno.exit(1);
 }
 
-// IMPORTED NECCESSARY LIBRARIES.
-const express = require("express");
-const logger = require("morgan");
-const app = express();
-const {limiter} = require("./utils/rate.limiter.js");
-const helmet = require('helmet');
-const cors = require('cors');
-const redis = require('redis')
+// ======================================================
+// LOOKUP TABLE (IP WHITELIST)
+// ======================================================
 
+const kv = await Deno.openKv();
 
-app.set('trust proxy' , 1)
+// Seed allowed IPs
+await kv.set(["allowed_ips", "127.0.0.1"], true);
+await kv.set(["allowed_ips", "192.168.1.10"], true);
 
-// APPLY RATE-LIMIT AS MIDDLEWARE
-app.use(limiter)
+// ======================================================
+// HELPERS
+// ======================================================
 
+function getClientIP(Request) {
 
-// LISTEN REQUEST FROM DIFFERENT ORIGIN
-app.use(cors())
+  const forwarded =
+    req.headers.get("x-forwarded-for");
 
-// CONFIG HELMET TO APPLY DEFAULT HEADER TO AN APP
-app.use(helmet())
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
 
-// CONFIG MORGAN FOR LOGGING REQUEST
-app.use(logger("common"))
+  return "unknown";
+}
 
-// PARSE REQUESTS OF CONTENT-TYPE - APPLICATION/JSON
-app.use(express.json());
+async function isAllowedIP(string) {
 
-// PARSE REQUESTS OF CONTENT-TYPE - APPLICATION/X-WWW-FORM-URLENCODED
-app.use(express.urlencoded({ extended: true }));
+  const result = await kv.get<boolean>([
+    "allowed_ips",
+    ip,
+  ]);
 
+  return result.value === true;
+}
 
-// SIMPLE ROUTE
-app.get("/", (req, res) => {
-  res.json({ message: "Redirecting to Main Server..!" });
+function hasValidOrigin(Request) {
+
+  const origin =
+    req.headers.get("origin");
+
+  // Allow server-to-server traffic
+  if (!origin) {
+    return true;
+  }
+
+  return ALLOWED_ORIGINS.has(origin);
+}
+
+function hasValidHeaders(Request) {
+
+  const requestHeaders =
+    req.headers;
+
+  for (const header of requestHeaders.keys()) {
+
+    const normalized =
+      header.toLowerCase();
+
+    // Ignore browser/system headers
+    if (
+      normalized.startsWith("sec-") ||
+      normalized.startsWith("x-forwarded") ||
+      normalized === "host" ||
+      normalized === "connection" ||
+      normalized === "accept" ||
+      normalized === "user-agent" ||
+      normalized === "origin" ||
+      normalized === "referer" ||
+      normalized === "content-length"
+    ) {
+      continue;
+    }
+
+    if (!ALLOWED_HEADERS.includes(normalized)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function hasValidMethod(Request) {
+
+  return ALLOWED_METHODS.includes(
+    req.method.toUpperCase()
+  );
+}
+
+// ======================================================
+// ADMIN VALIDATION
+// ======================================================
+
+function isAdminRequest(Request) {
+
+  const requestId =
+    req.headers.get("x-request-id");
+
+  const role =
+    req.headers.get("x-user-role");
+
+  if (!requestId || !role) {
+    return false;
+  }
+
+  const adminUsers =
+    securityConfig.adminUsers || [];
+
+  return adminUsers.some(
+    (user) =>
+      user.requestId === requestId &&
+      user.role === role &&
+      role === "admin"
+  );
+}
+
+// ======================================================
+// USER AGENT VALIDATION
+// ======================================================
+
+function hasValidUserAgent(
+  req
+) {
+
+  const ua = (
+    req.headers.get("user-agent") || ""
+  ).toLowerCase();
+
+  // ====================================================
+  // HARD BLOCKED AGENTS
+  // ====================================================
+
+  const blocked =
+    BLOCKED_AGENTS.some((agent) =>
+      ua.includes(agent)
+    );
+
+  if (blocked) {
+    return false;
+  }
+
+  // ====================================================
+  // RESTRICTED AGENTS
+  // ====================================================
+
+  const restricted =
+    RESTRICTED_AGENTS.some((agent) =>
+      ua.includes(agent)
+    );
+
+  // Allow curl/python-requests only for admins
+  if (restricted) {
+    return isAdminRequest(req);
+  }
+
+  return true;
+}
+
+// ======================================================
+// START SERVER
+// ======================================================
+
+console.log(
+  `Secure Reverse Proxy Running :${PORT}`
+);
+
+// ======================================================
+// MAIN SERVER
+// ======================================================
+
+serve(async (req) => {
+
+  // ====================================================
+  // EXTRACT CLIENT DETAILS
+  // ====================================================
+
+  const ip = getClientIP(req);
+
+  console.log(
+    `[${ip}] ${req.method} ${req.url}`
+  );
+
+  // ====================================================
+  // HYBRID SECURITY LAYER
+  // ====================================================
+
+  // 1. IP WHITELIST VALIDATION
+  const allowedIP =
+    await isAllowedIP(ip);
+
+  if (!allowedIP) {
+
+    console.warn(
+      `Blocked Unknown IP : ${ip}`
+    );
+
+    return new Response(
+      "Access Denied",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // 2. USER AGENT VALIDATION
+  if (!hasValidUserAgent(req)) {
+
+    console.warn(
+      `Blocked Suspicious Agent : ${ip}`
+    );
+
+    return new Response(
+      "Forbidden",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // 3. METHOD VALIDATION
+  if (!hasValidMethod(req)) {
+
+    return new Response(
+      "Method Not Allowed",
+      {
+        status: 405,
+      }
+    );
+  }
+
+  // 4. ORIGIN VALIDATION
+  if (!hasValidOrigin(req)) {
+
+    console.warn(
+      `Blocked Invalid Origin : ${ip}`
+    );
+
+    return new Response(
+      "Invalid Origin",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // 5. HEADER POLICY VALIDATION
+  if (!hasValidHeaders(req)) {
+
+    console.warn(
+      `Blocked Invalid Headers : ${ip}`
+    );
+
+    return new Response(
+      "Invalid Request Headers",
+      {
+        status: 403,
+      }
+    );
+  }
+
+  // ====================================================
+  // BUILD TARGET URL
+  // ====================================================
+
+  const url = new URL(req.url);
+
+  const proxyUrl =
+    `${NODE_BACKEND}${url.pathname}${url.search}`;
+
+  // ====================================================
+  // FORWARD HEADERS
+  // ====================================================
+
+  const headers =
+    new Headers(req.headers);
+
+  headers.set(
+    "x-forwarded-for",
+    ip
+  );
+
+  headers.set(
+    "x-forwarded-proto",
+    "https"
+  );
+
+  headers.set(
+    "x-real-ip",
+    ip
+  );
+
+  try {
+
+    // ==================================================
+    // PROXY REQUEST
+    // ==================================================
+
+    const response = await fetch(
+      proxyUrl,
+      {
+        method: req.method,
+        headers,
+        body:
+          req.method === "GET" ||
+          req.method === "HEAD"
+            ? undefined
+            : req.body,
+        redirect: "manual",
+      }
+    );
+
+    // ==================================================
+    // HARDEN RESPONSE HEADERS
+    // ==================================================
+
+    const responseHeaders =
+      new Headers(response.headers);
+
+    // Hide Framework Signature
+    responseHeaders.delete(
+      "x-powered-by"
+    );
+
+    responseHeaders.delete(
+      "server"
+    );
+
+    // ==================================================
+    // SECURITY HEADERS
+    // ==================================================
+
+    responseHeaders.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
+    );
+
+    responseHeaders.set(
+      "X-Frame-Options",
+      "DENY"
+    );
+
+    responseHeaders.set(
+      "X-Content-Type-Options",
+      "nosniff"
+    );
+
+    responseHeaders.set(
+      "Referrer-Policy",
+      "strict-origin-when-cross-origin"
+    );
+
+    responseHeaders.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()"
+    );
+
+    responseHeaders.set(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join("; ")
+    );
+
+    // ==================================================
+    // CORS POLICY
+    // ==================================================
+
+    const origin =
+      req.headers.get("origin");
+
+    if (
+      origin &&
+      ALLOWED_ORIGINS.has(origin)
+    ) {
+
+      responseHeaders.set(
+        "Access-Control-Allow-Origin",
+        origin
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Methods",
+        ALLOWED_METHODS.join(", ")
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Headers",
+        ALLOWED_HEADERS.join(", ")
+      );
+
+      responseHeaders.set(
+        "Access-Control-Allow-Credentials",
+        "true"
+      );
+    }
+
+    // ==================================================
+    // RETURN SECURED RESPONSE
+    // ==================================================
+
+    return new Response(
+      response.body,
+      {
+        status: response.status,
+        headers: responseHeaders,
+      }
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Proxy Error:",
+      err
+    );
+
+    return new Response(
+      "Bad Gateway",
+      {
+        status: 502,
+      }
+    );
+  }
+
+}, {
+  port: PORT,
 });
-
-// SET PORT, LISTEN FOR REQUESTS
-// require('./routes/user.routes.js')(app)
-// require('./routes/service.routes.js')(app)
-
-// CONFIG AN EXPRESS APP ON LOCALHOST IN DEVELOPMENT ENV.
-app.listen(process.env.PORT || 3000, function () {
-  const { port, address } = this.address();
-  const host = address === '::' ? 'localhost' : address;
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-
-  console.log(`Internal Node Server running at ${protocol}://${host}:${port}`);
-});
-
-
-
