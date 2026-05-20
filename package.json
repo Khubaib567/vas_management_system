@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "deno": "deno run --watch --allow-net --allow-env --allow-read=./deno.json --allow-write  proxy.js",
+    "deno": "deno run --watch --allow-net  --allow-env --allow-read=./deno.json  --allow-write  --unstable-kv   proxy.js",
+    "server" : "node --watch server.js",
     "client": "node --watch client.js"
   },
   "keywords": [],

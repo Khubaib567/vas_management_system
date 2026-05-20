@@ -114,7 +114,7 @@ await kv.set(["allowed_ips", "192.168.1.10"], true);
 function getClientIP(Request) {
 
   const forwarded =
-    req.headers.get("x-forwarded-for");
+    Request.headers.get("x-forwarded-for");
 
   if (forwarded) {
     return forwarded.split(",")[0].trim();
@@ -125,7 +125,7 @@ function getClientIP(Request) {
 
 async function isAllowedIP(ip) {
 
-  const result = await kv.get<boolean>([
+  const result = await kv.get([
     "allowed_ips",
     ip,
   ]);
@@ -136,7 +136,7 @@ async function isAllowedIP(ip) {
 function hasValidOrigin(Request) {
 
   const origin =
-    req.headers.get("origin");
+    Request.headers.get("origin");
 
   // Allow server-to-server traffic
   if (!origin) {
@@ -149,7 +149,7 @@ function hasValidOrigin(Request) {
 function hasValidHeaders(Request) {
 
   const requestHeaders =
-    req.headers;
+    Request.headers;
 
   for (const header of requestHeaders.keys()) {
 
@@ -182,7 +182,7 @@ function hasValidHeaders(Request) {
 function hasValidMethod(Request) {
 
   return ALLOWED_METHODS.includes(
-    req.method.toUpperCase()
+    Request.method.toUpperCase()
   );
 }
 
@@ -220,7 +220,7 @@ function isAdminRequest(Request) {
 function hasValidUserAgent(Request) {
 
   const ua = (
-    req.headers.get("user-agent") || ""
+    Request.headers.get("user-agent") || ""
   ).toLowerCase();
 
   // ====================================================
@@ -247,7 +247,7 @@ function hasValidUserAgent(Request) {
 
   // Allow curl/python-requests only for admins
   if (restricted) {
-    return isAdminRequest(req);
+    return isAdminRequest(Request);
   }
 
   return true;
