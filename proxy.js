@@ -18,7 +18,7 @@ const securityConfig =
 
 const NODE_BACKEND =
   Deno.env.get("PROXY_LOCALHOST") ||
-  "http://localhost:3000";
+  "http://127.0.0.1:3000";
 
 const PORT = Number(
   Deno.env.get("DENO_PORT") || 8080
@@ -30,7 +30,8 @@ const PORT = Number(
 
 // Trusted Origins (CORS + CSP validation)
 const ALLOWED_ORIGINS = new Set([
-  "https://vas-management-system.vercel.app"
+  "https://vas-management-system.vercel.app",
+  "http://127.0.0.1:3000"
 ]);
 
 // Trusted Methods
@@ -46,8 +47,11 @@ const ALLOWED_METHODS = [
 // Trusted Request Headers
 const ALLOWED_HEADERS = [
   "content-type",
-  "authorization",
-  "x-requested-with",
+  // "authorization",
+  // "x-requested-with",
+  "origin",
+  "user-agent",
+  "x-forwarded",
   "x-request-id",
   "x-user-role",
 ];
@@ -114,7 +118,7 @@ await kv.set(["allowed_ips", "192.168.1.10"], true);
 function getClientIP(Request) {
 
   const forwarded =
-    Request.headers.get("x-forwarded-for");
+    Request.headers.get("x-forwarded");
 
   if (forwarded) {
     return forwarded.split(",")[0].trim();
@@ -130,6 +134,7 @@ async function isAllowedIP(ip) {
     ip,
   ]);
 
+  // console.log("Result:" , result.value);
   return result.value === true;
 }
 
@@ -150,6 +155,7 @@ function hasValidHeaders(Request) {
 
   const requestHeaders =
     Request.headers;
+  console.log("Request Headers : " , Request.headers);
 
   for (const header of requestHeaders.keys()) {
 
@@ -173,6 +179,7 @@ function hasValidHeaders(Request) {
 
     if (!ALLOWED_HEADERS.includes(normalized)) {
       return false;
+
     }
   }
 
@@ -193,10 +200,10 @@ function hasValidMethod(Request) {
 function isAdminRequest(Request) {
 
   const requestId =
-    req.headers.get("x-request-id");
+    Request.headers.get("x-request-id");
 
   const role =
-    req.headers.get("x-user-role");
+    Request.headers.get("x-user-role");
 
   if (!requestId || !role) {
     return false;
