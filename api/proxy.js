@@ -5,6 +5,9 @@
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
+// FOR VERCEL SERVER HANDLING 
+import { NextResponse } from "next/server";
+
 const configText = await Deno.readTextFile(
   "./deno.json"
 );
@@ -53,7 +56,7 @@ const ALLOWED_HEADERS = [
   "accept-encoding",
   "origin",
   "user-agent",
-  "x-forwarded",
+  "x-forwarded-for",
   "x-request-id",
   "x-user-role",
 ];
@@ -120,7 +123,7 @@ await kv.set(["allowed_ips", "192.168.1.10"], true);
 function getClientIP(Request) {
 
   const forwarded =
-    Request.headers.get("x-forwarded");
+    Request.headers.get("x-forwarded-for");
 
   if (forwarded) {
     return forwarded.split(",")[0].trim();
@@ -169,7 +172,7 @@ async function hasValidHeaders(Request) {
     // Ignore browser/system headers
     if (
       normalized.startsWith("sec-") ||
-      normalized.startsWith("x-forwarded") ||
+      normalized.startsWith("x-forwarded-for") ||
       normalized === "host" ||
       normalized === "connection" ||
       normalized === "accept" ||
@@ -303,7 +306,7 @@ serve(async (req) => {
       `Blocked Unknown IP : ${ip}`
     );
 
-    return new Response(
+    return new NextResponse(
       "Access Denied",
       {
         status: 403,
@@ -329,7 +332,7 @@ serve(async (req) => {
   // 3. METHOD VALIDATION
   if (!hasValidMethod(req)) {
 
-    return new Response(
+    return new NextResponse(
       "Method Not Allowed",
       {
         status: 405,
@@ -344,7 +347,7 @@ serve(async (req) => {
       `Blocked Invalid Origin : ${ip}`
     );
 
-    return new Response(
+    return new NextResponse(
       "Invalid Origin",
       {
         status: 403,
@@ -359,7 +362,7 @@ serve(async (req) => {
       `Blocked Invalid Headers : ${ip}`
     );
 
-    return new Response(
+    return new NextResponse(
       "Invalid Request Headers",
       {
         status: 403,
@@ -514,7 +517,7 @@ serve(async (req) => {
     // RETURN SECURED RESPONSE
     // ==================================================
 
-    return new Response(
+    return new NextResponse(
       response.body,
       {
         status: response.status,
@@ -529,7 +532,7 @@ serve(async (req) => {
       err
     );
 
-    return new Response(
+    return new NextResponse(
       "Bad Gateway",
       {
         status: 502,
