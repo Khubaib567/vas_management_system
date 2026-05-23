@@ -48,7 +48,9 @@ const ALLOWED_METHODS = [
 const ALLOWED_HEADERS = [
   "content-type",
   // "authorization",
-  // "x-requested-with",
+  // "x-requested-with", // useful for third party authorized application
+  "postman-token",
+  "accept-encoding",
   "origin",
   "user-agent",
   "x-forwarded",
@@ -151,16 +153,18 @@ function hasValidOrigin(Request) {
   return ALLOWED_ORIGINS.has(origin);
 }
 
-function hasValidHeaders(Request) {
+
+async function hasValidHeaders(Request) {
 
   const requestHeaders =
     Request.headers;
-  console.log("Request Headers : " , Request.headers);
+  // console.log("Request Headers : " , Request.headers);
 
   for (const header of requestHeaders.keys()) {
 
     const normalized =
-      header.toLowerCase();
+    header.toLowerCase();
+    // console.log("Req. Headers: " , normalized);
 
     // Ignore browser/system headers
     if (
@@ -172,7 +176,8 @@ function hasValidHeaders(Request) {
       normalized === "user-agent" ||
       normalized === "origin" ||
       normalized === "referer" ||
-      normalized === "content-length"
+      normalized === "content-length" ||
+      normalized === "postman-token"
     ) {
       continue;
     }

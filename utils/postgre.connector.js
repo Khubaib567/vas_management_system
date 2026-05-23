@@ -11,6 +11,7 @@ if(process.env.NODE !=="production"){
 module.exports = postgreSQLConnector = async () =>{
     try {
         const DATABASE_URL = process.env.POSTRESQL_DATABASE_URL
+        // console.log("DATABASE URL: " , DATABASE_URL);
         // const sequelize = new Sequelize(DATABASE_URL);
 
         // const db = {};
