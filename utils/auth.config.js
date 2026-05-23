@@ -12,6 +12,7 @@ const auth = () =>  {
         // GET THE TOKEN
         const header = req.headers['authorization']
         const token = header && header.split(' ')[1]
+        // console.log("Access Token: " , token);
 
         if (token == null) return res.status(401).send({ message: "Access denied!" });
         // AUTHENTICATED THE USERS
