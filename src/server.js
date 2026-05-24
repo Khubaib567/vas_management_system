@@ -7,7 +7,7 @@ if(process.env.ENV !== "production"){
 const express = require("express");
 const logger = require("morgan");
 const app = express();
-const {limiter} = require("./utils/rate.limiter.js");
+const {limiter} = require("../utils/rate.limiter.js");
 const helmet = require('helmet');
 const cors = require('cors');
 const redis = require('redis')
@@ -41,8 +41,8 @@ app.get("/", (req, res) => {
 });
 
 // SET PORT, LISTEN FOR REQUESTS
-require('./routes/user.routes.js')(app)
-require('./routes/service.routes.js')(app)
+require('../routes/user.routes.js')(app)
+require('../routes/service.routes.js')(app)
 
 // CONFIG AN EXPRESS APP ON LOCALHOST IN DEVELOPMENT ENV.
 app.listen(process.env.PORT || 3000, function () {
