@@ -4,12 +4,5 @@
       "requestId": "REQ-ADMIN-001",
       "role": "admin"
     }
-  ],
-  "nodeModulesDir": "auto",
-  "tasks": {
-    "dev": "deno run -A --watch proxy.js"
-  },
-  "imports": {
-    "express": "npm:express@5"
-  }
+  ]
 }

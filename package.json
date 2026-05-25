@@ -3,31 +3,35 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "deno": "deno run --watch --allow-net  --allow-env --allow-read=./deno.json  --allow-write  --unstable-kv   proxy.js",
-    "server" : "node --watch server.js",
+    "deno": "deno run --watch --allow-net  --allow-env --allow-read=./deno.json,./.env  --allow-write  --unstable-kv  proxy.mjs",
+    "server": "node --watch  server.js",
     "client": "node --watch client.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hono/node-server": "^2.0.4",
     "@neondatabase/serverless": "^1.0.2",
     "axios": "^1.13.0",
     "connect-redis": "^9.0.0",
     "cors": "^2.8.5",
+    "deno2node": "^1.16.0",
     "dns": "^0.2.2",
     "dns-query": "^0.11.2",
     "dotenv": "^16.0.2",
     "express": "^4.21.2",
     "express-paginate": "^1.0.2",
     "express-session": "^1.18.2",
+    "hono": "^4.12.22",
     "ioredis": "^5.8.2",
     "mongodb": "^6.20.0",
     "morgan": "^1.10.0",
     "mysql2": "^2.3.3",
     "rate-limit-redis": "^4.2.3",
     "redis": "^5.9.0",
-    "sequelize": "^6.21.4"
+    "sequelize": "^6.21.4",
+    "socket.io": "^4.8.3"
   },
   "description": "",
   "devDependencies": {
@@ -36,5 +40,10 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2"
+  },
+  "overrides": {
+    "socket.io-parser": "4.2.4",
+    "engine.io-client": "6.5.4",
+    "xmlhttprequest": "1.8.0"
   }
 }

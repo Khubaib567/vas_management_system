@@ -1,3 +1,0 @@
-# Brief Introduction: 
-**Content Management System** which is based upon on **CRUD operations using Node.js & MySQL**, this back-end project is specifically used for **storing the no. of users 
-with their service description like: service name,service creation & updation etc.** In this project i have used **sequelize ORM in order to create the ORM for users & their projects in MySQL which is relational database management system which relates the project(s) according to it's corresponding user which he has created**. And last thing i have used node.js which is used for **integrate the sequelize model with MySQL**. 
