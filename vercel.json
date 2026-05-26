@@ -6,5 +6,10 @@
       "schedule": "0 0 * * *"
 
     }
-  ]
+  ],
+  "functions": {
+    "api/proxy.mjs": {
+      "runtime": "vercel-dev-builder@0.0.5"
+    }
+  }
 }
