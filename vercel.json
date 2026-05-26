@@ -9,7 +9,7 @@
   ],
   "functions": {
     "api/proxy.mjs": {
-      "runtime": "vercel-dev-builder@0.0.5"
+      "runtime": "vercel-deno@0.0.13"
     }
   }
 }
