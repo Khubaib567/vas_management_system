@@ -5,7 +5,7 @@ let denoProcess = null;
 
 function startDenoProxy(req, res, next) {
   const rootDir = path.resolve(__dirname, "..");
-  const scriptPath = path.join(rootDir, "../api/proxy.mjs");
+  const scriptPath = path.join(rootDir, "/api/proxy.mjs");
 
    // Allow reading only required files
   const configPath = [
@@ -13,7 +13,6 @@ function startDenoProxy(req, res, next) {
     path.join(rootDir, ".env"),
   ].join(",");
   
-  const configPath = `./deno.json,./.env`;
 
   const isWindows = process.platform === "win32";
   const localDenoPath = path.join(rootDir, "bin", "deno.exe");
