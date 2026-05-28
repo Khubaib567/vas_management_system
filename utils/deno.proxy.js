@@ -1,3 +1,4 @@
+
 // CONFIG ENVIRONMENT VARIABLES.
 if(process.env.ENV !== "production"){
   require('dotenv').config({path : './.secrets/.env'})
@@ -13,7 +14,7 @@ const runCloudDeno = async (requestPayload) => {
 
   try {
     const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
-    return proxyAllowed;
+    return proxyAllowed.data;
   } catch (error) {
     console.error("Error: " , error.message)
   }
@@ -107,7 +108,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
   }));
 }
 
-const  startDenoProxy = async (req, res, next) => {
+const startDenoProxy = async (req, res, next) => {
 
   const requestPayload = {
     action: "runSecurityCheck",
@@ -130,10 +131,11 @@ const  startDenoProxy = async (req, res, next) => {
   
    const isWindows = process.platform === "win32" ;
    let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload)
-   //  let response = await runDenoScript(requestPayload , isWindows);
-
+   
   //  try {
-  //    response = await runDenoScript(requestPayload , isWindows);
+  //   // response = await runCloudDeno(requestPayload);
+  //   response = await runDenoScript(requestPayload , isWindows);
+  //   // console.log("Deno Respone: " , typeof(response));
   //  } catch (err) {
   //    return res.status(500).json({
   //      success: false,
@@ -143,9 +145,20 @@ const  startDenoProxy = async (req, res, next) => {
 
    let denoResponse;
     try {
-      const jsonStart = response.indexOf("{");
-      const jsonString = response.slice(jsonStart).trim();
-      const denoResponse = JSON.parse(jsonString);
+
+      if(typeof(response) === "string") {
+        const jsonStart = response.indexOf("{");
+        const jsonString = response.slice(jsonStart).trim();
+        denoResponse = JSON.parse(jsonString);
+      }
+
+
+      if(typeof(response) === "object") {
+        denoResponse = response;
+        // console.log(response)
+      }
+      
+      console.log("Deno Respone: " , denoResponse);
 
       if (denoResponse.allowed === false) {
         return res.status(denoResponse.status || 403).json({
@@ -154,7 +167,7 @@ const  startDenoProxy = async (req, res, next) => {
         });
       }
 
-      // By Pass the Request
+      // ByPass the Request
       if(denoResponse.allowed === true) next(); 
 
     } catch (error) {
