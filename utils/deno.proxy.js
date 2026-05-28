@@ -130,26 +130,13 @@ const startDenoProxy = async (req, res, next) => {
   };
   
    const isWindows = process.platform === "win32" ;
-
-  try {
-    if (isWindows) {
-      response = await runDenoScript(requestPayload, isWindows);
-    } else {
-      response = await runCloudDeno(requestPayload);
-    }
-  } catch (err) {
-    console.error("Deno execution failed:", err.message);
-    return res.status(500).json({
-      success: false,
-      message: "Security service unavailable",
-    });
-  }
+  
+  let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
 
   // Ensure response exists before parsing
   if (!response) {
     return res.status(500).json({ success: false, message: "Empty security response" });
   }
-  //  let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload)
    
   //  try {
   //   response = await runCloudDeno(requestPayload);
