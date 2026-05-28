@@ -6,10 +6,5 @@
       "schedule": "0 0 * * *"
 
     }
-  ],
-  "functions": {
-    "api/proxy.mjs": {
-      "runtime": "vercel-deno@0.0.13"
-    }
-  }
+  ]
 }
