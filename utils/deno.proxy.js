@@ -1,9 +1,29 @@
+// CONFIG ENVIRONMENT VARIABLES.
+if(process.env.ENV !== "production"){
+  require('dotenv').config({path : './.secrets/.env'})
+}
+
 const { spawn } = require("child_process");
 const path = require("path");
+const axios = require("axios")
 
 let denoProcess = null;
 
-function startDenoProxy(req, res, next) {
+const runCloudDeno = async (requestPayload) => {
+
+  try {
+    const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
+    return proxyAllowed;
+  } catch (error) {
+    console.error("Error: " , error.message)
+  }
+
+}
+
+const runDenoScript =  (requestPayload , isWindows) => {
+  
+  return new Promise((async (resolve , reject) => {
+
   const rootDir = path.resolve(__dirname, "..");
   const scriptPath = path.join(rootDir, "/api/proxy.mjs");
 
@@ -12,14 +32,12 @@ function startDenoProxy(req, res, next) {
     path.join(rootDir, "deno.json"),
     path.join(rootDir, ".env"),
   ].join(",");
-  
 
-  const isWindows = process.platform === "win32";
+
   const localDenoPath = path.join(rootDir, "bin", "deno.exe");
-  const denoCmd = isWindows ? localDenoPath : "deno";
 
   denoProcess = spawn(
-    denoCmd,
+    localDenoPath,
     [
       "run",
       // "--watch", 
@@ -36,6 +54,60 @@ function startDenoProxy(req, res, next) {
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
+
+  try {
+    const payloadString =  await JSON.stringify(requestPayload);
+    // console.log("Payload String: " , payloadString)
+    denoProcess.stdin.write(payloadString);
+    denoProcess.stdin.end();           // Important: Close stdin
+  } catch (err) {
+    console.error("Failed to stringify payload:", err.message);
+    return res.status(500).json({ success: false, message: "Payload Error" });
+  }
+
+  let stdoutBuffer = "";
+  denoProcess.stdout.on("data", (chunk) => {
+    // Log only the fresh chunk to the console to prevent compounding strings
+    console.log(`[DENO STDOUT]: ${chunk.toString().trim()}`);
+    stdoutBuffer += chunk.toString();
+    return stdoutBuffer;
+  });
+
+  let stderrBuffer = "";
+  denoProcess.stderr.on("data", (chunk) => {
+    console.error(`[DENO STDERR]: ${chunk.toString().trim()}`);
+    stderrBuffer += chunk.toString();
+    return stderrBuffer;
+  });
+
+  denoProcess.on("close", (code) => {
+      denoProcess = null; 
+      if (code !== 0) {
+        console.error("Deno Process Failed:", stderrBuffer);
+        return reject(new Error("Security check failed!"));
+      }
+      resolve(stdoutBuffer); // Return the final string data here
+  });
+
+  denoProcess.on("error", (err) => {
+    console.error("Failed to start Deno process:", err);
+    denoProcess = null;
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error!",
+    });
+  });
+
+  // Clean up OS listeners properly
+  process.on("SIGINT", () => {
+    if (denoProcess) denoProcess.kill("SIGTERM");
+    process.exit();
+  });
+
+  }));
+}
+
+const  startDenoProxy = async (req, res, next) => {
 
   const requestPayload = {
     action: "runSecurityCheck",
@@ -55,45 +127,24 @@ function startDenoProxy(req, res, next) {
     },
     ip: req.ip
   };
+  
+   const isWindows = process.platform === "win32" ;
+   let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload)
+   //  let response = await runDenoScript(requestPayload , isWindows);
 
-  try {
-    const payloadString = JSON.stringify(requestPayload);
-    // console.log("Payload String: " , payloadString)
-    denoProcess.stdin.write(payloadString);
-    denoProcess.stdin.end();           // Important: Close stdin
-  } catch (err) {
-    console.error("Failed to stringify payload:", err.message);
-    return res.status(500).json({ success: false, message: "Payload Error" });
-  }
+  //  try {
+  //    response = await runDenoScript(requestPayload , isWindows);
+  //  } catch (err) {
+  //    return res.status(500).json({
+  //      success: false,
+  //      message: err.message || "Internal Server Error!",
+  //    });
+  //  }
 
-  let stdoutBuffer = "";
-  denoProcess.stdout.on("data", (chunk) => {
-    // Log only the fresh chunk to the console to prevent compounding strings
-    console.log(`[DENO STDOUT]: ${chunk.toString().trim()}`);
-    stdoutBuffer += chunk.toString();
-  });
-
-  let stderrBuffer = "";
-  denoProcess.stderr.on("data", (chunk) => {
-    console.error(`[DENO STDERR]: ${chunk.toString().trim()}`);
-    stderrBuffer += chunk.toString();
-  });
-
-  denoProcess.on("close", (code) => {
-    denoProcess = null; // Clean up reference immediately
-
-    if (code !== 0) {
-      console.error("Deno Process Failed:", stderrBuffer);
-      return res.status(500).json({
-        success: false,
-        message: "Security check failed!",
-      });
-    }
-
-    let denoResponse;
+   let denoResponse;
     try {
-      const jsonStart = stdoutBuffer.indexOf("{");
-      const jsonString = stdoutBuffer.slice(jsonStart).trim();
+      const jsonStart = response.indexOf("{");
+      const jsonString = response.slice(jsonStart).trim();
       const denoResponse = JSON.parse(jsonString);
 
       if (denoResponse.allowed === false) {
@@ -107,28 +158,13 @@ function startDenoProxy(req, res, next) {
       if(denoResponse.allowed === true) next(); 
 
     } catch (error) {
-      console.error("Invalid Deno Response Raw String:", stdoutBuffer);
+      console.error("Invalid Deno Response Raw String:", response);
       return res.status(500).json({
         success: false,
         message: "Invalid Security Response",
       });
-    }
-  });
-
-  denoProcess.on("error", (err) => {
-    console.error("Failed to start Deno process:", err);
-    denoProcess = null;
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error!",
-    });
-  });
-
-  // Clean up OS listeners properly
-  process.on("SIGINT", () => {
-    if (denoProcess) denoProcess.kill("SIGTERM");
-    process.exit();
-  });
+  }
+  
 
 }
 
