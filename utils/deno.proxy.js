@@ -110,6 +110,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
 const startDenoProxy = async (req, res, next) => {
 
+  console.log(req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
     method: req.method,
