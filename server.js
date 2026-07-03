@@ -13,13 +13,13 @@ const cors = require("cors");
 const redis = require("redis");
 const { startDenoProxy } = require("./utils/deno.proxy.js");
 
-// APPLY RATE-LIMIT AS MIDDLEWARE
-app.use(limiter)
-
 // TRUSTED VERCEL & DENO FIREWALL 
 app.set('trust proxy' , 1)
 
 app.use(startDenoProxy);
+
+// APPLY RATE-LIMIT AS MIDDLEWARE
+app.use(limiter)
 
 // LISTEN REQUEST FROM DIFFERENT ORIGIN
 app.use(cors())

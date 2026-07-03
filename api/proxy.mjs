@@ -84,12 +84,14 @@ await kv.set(["allowed_ips", "192.168.1.10"], true);
 
 function getClientIP(req) {
   const forwarded = req.headers["x-forwarded-for"];
+  // console.log("IP: " , forwarded);
   if (forwarded) return forwarded.split(",")[0].trim();
   return req.socket?.remoteAddress || "unknown";
 }
 
 async function isAllowedIP(ip) {
   const result = await kv.get(["allowed_ips", ip]);
+  // console.log("Result: " , result);
   return result.value === true;
 }
 
@@ -110,6 +112,7 @@ function hasValidMethod(req) {
 function isAdminRequest(req) {
   const requestId = req.headers["x-request-id"];
   const role = req.headers["x-user-role"];
+  // console.log("Role: " , role)
   if (!requestId || !role) return false;
 
   const adminUsers = securityConfig.adminUsers || [];
@@ -124,6 +127,7 @@ function isAdminRequest(req) {
 
 function hasValidUserAgent(req) {
   const ua = (req.headers["user-agent"] || "").toLowerCase();
+  // console.log("User Agent: " , ua)
 
   if (BLOCKED_AGENTS.some(agent => ua.includes(agent))) return false;
 
@@ -131,7 +135,7 @@ function hasValidUserAgent(req) {
     return isAdminRequest(req);
   }
 
-  return true;
+  return false;
 }
 
 

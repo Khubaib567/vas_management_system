@@ -12,8 +12,11 @@ let denoProcess = null;
 
 const runCloudDeno = async (requestPayload) => {
 
+  // console.log("Deno Production URL: " , process.env.DENO_PRODUCTION_URL)
+
   try {
     const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
+    console.log("Cloud Response Type : " , typeof(proxyAllowed))
     return proxyAllowed.data;
   } catch (error) {
     console.error("Error: " , error.message)
@@ -58,7 +61,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
   try {
     const payloadString =  await JSON.stringify(requestPayload);
-    // console.log("Payload String: " , payloadString)
+    console.log("Payload String: " , payloadString)
     denoProcess.stdin.write(payloadString);
     denoProcess.stdin.end();           // Important: Close stdin
   } catch (err) {
@@ -110,7 +113,8 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
 const startDenoProxy = async (req, res, next) => {
 
-  console.log(req.headers['x-forwarded-for'])
+  // console.log("Req. Headers:" , req.headers);
+  // console.log("Req. Headers: " , req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
     method: req.method,
@@ -133,6 +137,7 @@ const startDenoProxy = async (req, res, next) => {
    const isWindows = process.platform === "win32" ;
   
   let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
+  // let response =  await runCloudDeno(requestPayload);
 
   // Ensure response exists before parsing
   if (!response) {
@@ -162,7 +167,6 @@ const startDenoProxy = async (req, res, next) => {
 
       if(typeof(response) === "object") {
         denoResponse = response;
-        // console.log(response)
       }
       
       console.log("Deno Respone: " , denoResponse);
