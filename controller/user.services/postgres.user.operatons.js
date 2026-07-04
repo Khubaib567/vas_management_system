@@ -75,11 +75,14 @@ const getAllUserFromPostgreSQLdb = async (req , db) =>{
 
 const getUserBasedOnMsisdnFromPostreSQLdb = async (msisdn,db) => {
     try {
-        // console.log('Id: ' , id)
+        // console.log('msisdn: ' , msisdn)
         const data = await db.query("SELECT * FROM users WHERE msisdn = $1" , [msisdn])
+        console.log("User Retreived Data: " , data);
         return data;   
         
     } catch (error) {
+
+        console.error("PostgreSQL Error Details:", error);
         throw new Error("Error during retrieve the user with mssidn " + msisdn)
     }
 }
@@ -100,10 +103,12 @@ const setOtpBasedOnMsisdnFromPostreSQLdb = async (msisdn,otp,db) =>{
 const getOneUserFromPostgreSQLdb = async (id,db) => {
     try {
         // console.log('Id: ' , id)
-        const data = await db.query("SELECT * FROM users WHERE id = $1" , [id])
+        const data = await db.query("SELECT * FROM users WHERE id = $1" , [id]);
+        // console.log("User Data: " , data);
         return data;   
         
     } catch (error) {
+        console.error("PostgreSQL Error Details:", error);
         throw new Error("Error during retrieve the user with id " + id)
     }
 }

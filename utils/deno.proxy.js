@@ -16,7 +16,7 @@ const runCloudDeno = async (requestPayload) => {
 
   try {
     const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
-    console.log("Cloud Response Type : " , typeof(proxyAllowed))
+    // console.log("Cloud Response Type : " , typeof(proxyAllowed))
     return proxyAllowed.data;
   } catch (error) {
     console.error("Error: " , error.message)
@@ -61,7 +61,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
   try {
     const payloadString =  await JSON.stringify(requestPayload);
-    console.log("Payload String: " , payloadString)
+    // console.log("Payload String: " , payloadString)
     denoProcess.stdin.write(payloadString);
     denoProcess.stdin.end();           // Important: Close stdin
   } catch (err) {

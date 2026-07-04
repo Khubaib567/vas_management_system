@@ -32,12 +32,12 @@ exports.create = async (req, res) => {
   try {
 
     const db = await db_connector();
-    // console.log('Reqbody: ' , req.body)
+    console.log('Reqbody: ' , req.body.bodypayload)
     // const body = JSON.stringify(req.body)
 
     const body = {
-        name : req.body.name,
-        msisdn : req.body.msisdn,
+        name : req.body.bodypayload.name,
+        msisdn : req.body.bodypayload.msisdn,
     }
 
 
@@ -167,7 +167,7 @@ exports.findUser = async (req,res) =>{
 
   } catch (error) {
     res.status(500).send({
-      message: err.message 
+      message: error.message 
     });
     
   }
