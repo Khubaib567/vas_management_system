@@ -136,8 +136,8 @@ const startDenoProxy = async (req, res, next) => {
   
    const isWindows = process.platform === "win32" ;
   
-  // let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
-  let response =  await runCloudDeno(requestPayload);
+  let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
+  // let response =  await runCloudDeno(requestPayload);
 
   // Ensure response exists before parsing
   if (!response) {
