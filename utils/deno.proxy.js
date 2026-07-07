@@ -13,7 +13,7 @@ let denoProcess = null;
 const runCloudDeno = async (requestPayload) => {
 
   // console.log("Deno Production URL: " , process.env.DENO_PRODUCTION_URL)
-  console.log("Request. Payload: " , requestPayload);
+  // console.log("Request. Payload: " , requestPayload);
   try {
     const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
     // console.log("Cloud Response Type : " , typeof(proxyAllowed))
@@ -136,8 +136,8 @@ const startDenoProxy = async (req, res, next) => {
   
    const isWindows = process.platform === "win32" ;
   
-  let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
-  // let response =  await runCloudDeno(requestPayload);
+  // let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
+  let response =  await runCloudDeno(requestPayload);
 
   // Ensure response exists before parsing
   if (!response) {

@@ -83,10 +83,11 @@ await kv.set(["allowed_ips", "192.168.1.10"], true);
 // ======================================================
 
 function getClientIP(req) {
-  const forwarded = req.headers["x-forwarded-for"];
+  const forwarded = req.ip.remoteAddress;
   // console.log("IP: " , forwarded);
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return req.socket?.remoteAddress || "unknown";
+  if (forwarded) forwarded.trim();
+  if(forwarded === "::1") return "127.0.0.1" || "unknown";
+
 }
 
 async function isAllowedIP(ip) {
@@ -168,6 +169,7 @@ async function runSecurityCheck(payload) {
     method : payload.method,
     url: payload.originalUrl,
     hostname: payload.hostname,
+    ip : payload.socket,
     headers : payload.headers
   
   };
