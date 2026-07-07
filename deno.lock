@@ -1,6 +1,8 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/internal@^1.0.14": "1.0.14",
+    "jsr:@std/path@*": "1.1.6",
     "npm:@neondatabase/serverless@^1.0.2": "1.1.0",
     "npm:axios@^1.13.0": "1.16.1",
     "npm:connect-redis@9": "9.0.0_express-session@1.19.0_redis@5.12.1",
@@ -25,6 +27,17 @@
     "npm:redis@^5.9.0": "5.12.1",
     "npm:sequelize@^6.21.4": "6.37.8",
     "npm:socket.io@^4.8.3": "4.8.3"
+  },
+  "jsr": {
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    },
+    "@std/path@1.1.6": {
+      "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    }
   },
   "npm": {
     "@ioredis/commands@1.5.1": {

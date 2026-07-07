@@ -13,7 +13,7 @@ let denoProcess = null;
 const runCloudDeno = async (requestPayload) => {
 
   // console.log("Deno Production URL: " , process.env.DENO_PRODUCTION_URL)
-
+  console.log("Request. Payload: " , requestPayload);
   try {
     const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
     // console.log("Cloud Response Type : " , typeof(proxyAllowed))
@@ -44,7 +44,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
     localDenoPath,
     [
       "run",
-      // "--watch", 
+      // "--watch",
       "--allow-net",
       "--allow-env",
       `--allow-read=${configPath}`,
@@ -61,7 +61,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
   try {
     const payloadString =  await JSON.stringify(requestPayload);
-    // console.log("Payload String: " , payloadString)
+    console.log("Payload String: " , payloadString)
     denoProcess.stdin.write(payloadString);
     denoProcess.stdin.end();           // Important: Close stdin
   } catch (err) {
@@ -166,6 +166,7 @@ const startDenoProxy = async (req, res, next) => {
 
 
       if(typeof(response) === "object") {
+        // console.log("Deno Object Body : " , response)
         denoResponse = response;
       }
       
