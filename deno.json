@@ -4,5 +4,8 @@
       "requestId": "REQ-ADMIN-001",
       "role": "admin"
     }
-  ]
+  ],
+  "allowed_devices" : [
+    { "device_id" : "e2fdd680-d0f8-11e3-b146-eb8207c1d3a0" }
+  ] 
 }

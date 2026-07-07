@@ -90,10 +90,23 @@ function getClientIP(req) {
 
 }
 
-async function isAllowedIP(ip) {
+function isAllowedDevice(req) {
+
+  const device_id = req.device_id;
+  const adminDevices = securityConfig.allowed_devices || [];
+  // console.log("Admin Devices: " , adminDevices);
+  return adminDevices.some(device => 
+    device.device_id === device_id 
+  );
+}
+
+async function isAllowedIP(ip , req) {
   const result = await kv.get(["allowed_ips", ip]);
+  // UTIL TO CHECK THE DEVICE ID 
+
+  if (result.value === true && isAllowedDevice(req) === true) return true;
+
   // console.log("Result: " , result);
-  return result.value === true;
 }
 
 function hasValidOrigin(req) {
@@ -167,6 +180,7 @@ function hasValidHeaders(req) {
 async function runSecurityCheck(payload) {
   const req = { 
     method : payload.method,
+    device_id : payload.device_id,
     url: payload.originalUrl,
     hostname: payload.hostname,
     ip : payload.socket,
@@ -178,7 +192,7 @@ async function runSecurityCheck(payload) {
   console.log(`[${ip}] ${req.method} ${req.headers['origin']}`);
 
   // === IP Whitelist ===
-  if (!(await isAllowedIP(ip))) {
+  if (!(await isAllowedIP(ip , req))) {
     return { allowed: false, status: 403, message: "Access Denied" };
   }
 

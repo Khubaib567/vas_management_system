@@ -6,7 +6,8 @@ if(process.env.ENV !== "production"){
 
 const { spawn } = require("child_process");
 const path = require("path");
-const axios = require("axios")
+const axios = require("axios");
+const getDeviceID = require("../utils/device.identifier")
 
 let denoProcess = null;
 
@@ -117,6 +118,7 @@ const startDenoProxy = async (req, res, next) => {
   // console.log("Req. Headers: " , req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
+    device_id : await getDeviceID(),
     method: req.method,
     url: req.originalUrl,
     hostname: req.hostname,
@@ -126,7 +128,7 @@ const startDenoProxy = async (req, res, next) => {
       "x-forwarded-for": req.headers["x-forwarded-for"],
       "x-request-id": req.headers["x-request-id"],
       "x-user-role": req.headers["x-user-role"],
-      "content-type": req.headers["content-type"],
+      "content-type": req.headers["content-type"]
     },
     socket: {
       remoteAddress: req.socket?.remoteAddress || req.ip || "unknown"

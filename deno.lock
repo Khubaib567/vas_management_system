@@ -2051,7 +2051,8 @@
         "npm:rate-limit-redis@^4.2.3",
         "npm:redis@^5.9.0",
         "npm:sequelize@^6.21.4",
-        "npm:socket.io@^4.8.3"
+        "npm:socket.io@^4.8.3",
+        "npm:systeminformation@^5.31.13"
       ],
       "overrides": {
         "socket.io-parser": "4.2.4",
