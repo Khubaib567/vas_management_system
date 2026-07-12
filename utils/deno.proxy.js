@@ -7,7 +7,7 @@ if(process.env.ENV !== "production"){
 const { spawn } = require("child_process");
 const path = require("path");
 const axios = require("axios");
-const getDeviceID = require("../utils/device.identifier")
+const getNodeID = require("../utils/device.identifier")
 
 let denoProcess = null;
 
@@ -114,11 +114,11 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
 const startDenoProxy = async (req, res, next) => {
 
-  // console.log("Req. Headers:" , req.headers);
+  console.log("Req. Headers:" , req.headers);
   // console.log("Req. Headers: " , req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
-    device_id : await getDeviceID(),
+    node_id : await getNodeID(req.deviceID),
     method: req.method,
     url: req.originalUrl,
     hostname: req.hostname,
