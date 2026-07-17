@@ -1,0 +1,16 @@
+[package]
+name = "rust_passkey_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Base64 encoding tools to handle the cryptographic payload strings
+base64 = "0.22"
+
+# Official Microsoft Windows API bindings to access webauthn.dll
+[dependencies.windows]
+version = "0.58"
+features = [
+    "Win32_Security_Authentication_Identity_Provider",
+    "Win32_Foundation"
+]
