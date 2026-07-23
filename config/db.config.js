@@ -1,42 +1,32 @@
-
-const postgreSQLConnector = require('../utils/postgre.connector.js')
+const CircuitBreaker = require('opossum');
+const postgreSQLConnector = require('../utils/postgre.connector.js');
 const sqlConnector = require("../utils/sql.connector.js");
-const  mongodbConnector   = require("../utils/mongo.connector.js")
+const mongodbConnector = require("../utils/mongo.connector.js");
 
+// 1. Define the primary action (Try PostgreSQL)
+const primaryOptions = {
+  timeout: 3000,          // If Postgres takes > 3s, count as a failure
+  errorThresholdPercentage: 50, // Trip if 50% of recent requests fail
+  resetTimeout: 10000     // Stay OPEN for 10 seconds before trying Postgres again
+};
 
-module.exports = db_connector = async () => {
+const postgresBreaker = new CircuitBreaker(postgreSQLConnector, primaryOptions);
 
+// 2. Define what happens when the Circuit Breaker is OPEN or Fails
+postgresBreaker.fallback(async (error) => {
+  console.log(`[Breaker Fallback triggered due to: ${error.message}]`);
+  console.log('Routing instantly to MySQL...');
+  
   try {
-   const db = await postgreSQLConnector();
-   console.log('Connected with PostrgreSQL');
-   return db;
-  } catch (error) {
-    console.log(`${error.message}`)
-    console.log('Connecting with MYSQL Connector......')
-    try {
-      const db = await sqlConnector();
-      console.log('Connected with MYSQL.');
-      return db;
-    } catch (error) {
-      console.log(`${error.message}`)
-      console.log('Connecting with Mongodb Connector......')
-      try {
-          const db = await mongodbConnector();
-          console.log('Connected with Mongodb.');
-          return db;
-      } catch (error) {
-         throw new Error(error.message);
-      }
-    }
+    return await sqlConnector();
+  } catch (mysqlError) {
+    console.log(`MySQL failed: ${mysqlError.message}. Routing to MongoDB...`);
+    return await mongodbConnector();
   }
+});
 
-}
-
-
-// db_connector();
-// module.exports = db;
-
-
-
-
-
+// 3. Export the execution wrapper
+module.exports = db_connector = async () => {
+  // fire() will automatically decide whether to call Postgres or instantly skip to the fallback!
+  return await postgresBreaker.fire();
+};
