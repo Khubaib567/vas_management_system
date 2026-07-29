@@ -1,10 +1,10 @@
 // const si = require('systeminformation');
 
- module.exports = getNodeID = async(userDeviceID) => {
+ module.exports = getNodeID = async(encrptedData) => {
   try {
 
     // FOR SERVER SIDE REQUEST.
-    if (userDeviceID.uuid) {
+    if (encrptedData.encryptedBundle) {
       // Fetches native system UUIDs
       // const data = await si.uuid();
       const data = await userDeviceID.uuid;
@@ -14,7 +14,7 @@
     }
 
     // FOR CLIENT SIDE REQUEST.
-    if (userDeviceID.openID) {
+    if (encrptedData.ciphertext) {
       // Fetches native system UUIDs
       // const data = await si.uuid();
       const data = await userDeviceID.openID.userProfile

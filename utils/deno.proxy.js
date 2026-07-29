@@ -114,11 +114,11 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
 const startDenoProxy = async (req, res, next) => {
 
-  console.log("Req. Headers:" , req.headers);
+  console.log("Req. body:" , req.body);
   // console.log("Req. Headers: " , req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
-    node_id : await getNodeID(req.deviceID),
+    node_id : await getNodeID(req.body.encrptedData),
     method: req.method,
     url: req.originalUrl,
     hostname: req.hostname,
