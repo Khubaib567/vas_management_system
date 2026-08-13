@@ -10,9 +10,10 @@ const crypto = require('crypto');
  * @param {string|Buffer} secretKey - The 32-byte secret key (as a hex string or Buffer).
  * @returns {any} The original plaintext data (string, object, number, etc.).
  */
-const decryptWithRandomIV = ({ iv, ciphertext, authTag }, secretKey) => {
+const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
     // 1. Automatically convert hex string key into a Buffer if needed
     let keyBuffer = secretKey;
+    // console.log("Secret Key: " , keyBuffer);
     if (typeof secretKey === 'string') {
         keyBuffer = Buffer.from(secretKey, 'hex');
     }
