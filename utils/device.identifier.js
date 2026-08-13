@@ -1,4 +1,7 @@
 // const si = require('systeminformation');
+const { decryptWithRandomIV } = require('../utils/decrypt.authtag.js');
+
+
 
  module.exports = getNodeID = async(encrptedData) => {
   try {
@@ -7,20 +10,20 @@
     if (encrptedData.encryptedBundle) {
       // Fetches native system UUIDs
       // const data = await si.uuid();
-      const data = await userDeviceID.uuid;
+      const data = await encrptedData.encryptedBundle.uuid;
       // console.log('Hardware UUID:', data.hardware); 
       // console.log('OS UUID:', data.os);
       return data.hardware
     }
 
     // FOR CLIENT SIDE REQUEST.
-    if (encrptedData.ciphertext) {
+    if (encrptedData) {
       // Fetches native system UUIDs
       // const data = await si.uuid();
-      const data = await userDeviceID.openID.userProfile
+      const data = await decryptWithRandomIV(encrptedData);
       // console.log('Hardware UUID:', data.hardware); 
       // console.log('OS UUID:', data.os);
-      return data.sub
+      return data.data
     }
    
   } catch (error) {
