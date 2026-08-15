@@ -1,5 +1,10 @@
 const crypto = require('crypto');
 
+// CONFIG ENVIRONMENT VARIABLES.
+if(process.env.ENV !== "production"){
+  require('dotenv').config({path : './.secrets/.env'})
+}
+
 /**
  * Decrypts data encrypted with the encryptWithRandomIV function.
  * 
@@ -10,37 +15,32 @@ const crypto = require('crypto');
  * @param {string|Buffer} secretKey - The 32-byte secret key (as a hex string or Buffer).
  * @returns {any} The original plaintext data (string, object, number, etc.).
  */
+
 const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
-    // 1. Automatically convert hex string key into a Buffer if needed
-    let keyBuffer = secretKey;
-    // console.log("Secret Key: " , keyBuffer);
-    if (typeof secretKey === 'string') {
-        keyBuffer = Buffer.from(secretKey, 'hex');
-    }
+    
+    // console.log("Secret_Key: " , process.env.SECRET_KEY);
+    const key = Buffer.from(process.env.SECRET_KEY, 'hex');
 
-    // 2. Validate Key Length for AES-256 (32 bytes)
-    if (!Buffer.isBuffer(keyBuffer) || keyBuffer.length !== 32) {
-        throw new Error("Secret key must be a 32-byte Buffer.");
-    }
+    const iv_v4 = Buffer.from(iv, 'hex');
+    const authtag_v4 = Buffer.from(authTag, 'hex');
+    const ciphertext_v4 = Buffer.from(ciphertext, 'hex');
 
-    // 3. Convert input hex strings back into binary Buffers
-    const ivBuffer = Buffer.from(iv, 'hex');
-    const authTagBuffer = Buffer.from(authTag, 'hex');
+    // Create decipher
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv_v4);
 
-    // 4. Initialize the AES-GCM decipher
-    const decipher = crypto.createDecipheriv('aes-256-gcm', keyBuffer, ivBuffer);
+    // Set the auth tag *before* finalizing
+    decipher.setAuthTag(authtag_v4);
 
-    // 5. Set the authentication tag (Crucial step for AES-GCM integrity validation)
-    decipher.setAuthTag(authTagBuffer);
+    // Decrypt
+    const decrypted = Buffer.concat([
+        decipher.update(ciphertext_v4),
+        decipher.final()
+    ]);
 
-    // 6. Decrypt the ciphertext
-    let decrypted = decipher.update(ciphertext, 'hex', 'utf-8');
-    decrypted += decipher.final('utf-8');
+    return decrypted.toString('utf8');
 
-    // 7. Parse the original JSON structural layout to extract the raw plaintext data
-    const parsedPayload = JSON.parse(decrypted);
-    return parsedPayload;
 };
+
 
 // Export using CommonJS syntax
 module.exports = {

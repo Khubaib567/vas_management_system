@@ -1,5 +1,5 @@
 // const si = require('systeminformation');
-const { decryptWithRandomIV } = require('../utils/decrypt.authtag.js');
+const { decryptWithRandomIV } = require('./decrypt.authtag.js');
 
 
 

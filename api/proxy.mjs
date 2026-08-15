@@ -5,6 +5,7 @@
 const EXPECTED_ACTION = "runSecurityCheck";
 const configText = await Deno.readTextFile("./deno.json");
 const securityConfig = JSON.parse(configText);
+const decryptWithRandomIV = require("../utils/decrypt.authtag.js")
 
 // ======================================================
 // CONFIG
@@ -73,20 +74,24 @@ if (readPermission.state !== "granted") {
 // ======================================================
 
 const kv = await Deno.openKv();
+// console.log("Deno KV: " , kv);
 
 // Seed allowed IPs
 await kv.set(["allowed_ips", "127.0.0.1"], true);
 await kv.set(["allowed_ips", "192.168.1.10"], true);
+
+// console.log("Deno KV: " , kv);
 
 // ======================================================
 // HELPERS
 // ======================================================
 
 function getClientIP(req) {
-  const forwarded = req.ip.remoteAddress;
-  // console.log("IP: " , forwarded);
+  const forwarded = req.ip;
+  console.log("IP: " , forwarded);
   if (forwarded) forwarded.trim();
-  if(forwarded === "::1") return "127.0.0.1" || "unknown";
+  return forwarded;
+  // if(forwarded === "::1") return "127.0.0.1" || "unknown";
 
 }
 
@@ -100,11 +105,31 @@ function isAllowedDevice(req) {
   );
 }
 
-async function isAllowedIP(ip , req) {
-  const result = await kv.get(["allowed_ips", ip]);
-  // UTIL TO CHECK THE DEVICE ID 
 
+async function isAllowedUsers(body) {
+
+  // STEP 01 : NEEDS TO IMPORT THE DECRIPT AUTH TAG.
+  const actualBody = await decryptWithRandomIV(body);
+
+  // STEP 02 : NEEDS TO VERIFIED FROM OUR KV DATABASE.
+  const device_id = actualBody.sub;
+  const verifiedUsers = securityConfig.allowed_oidc_users || [];
+  // console.log("Admin Devices: " , adminDevices);
+  return verifiedUsers.some(device => 
+    device.google_user_id === google_user_id 
+  );
+}
+
+async function isAllowedIP(ip , req) {
+  // console.log("IP: " , ip);
+  const result = await kv.get(["allowed_ips", ip]);
+  
+  // UTIL TO CHECK THE DEVICE ID FOR SERVER SIDE REDIRECTING
   if (result.value === true && isAllowedDevice(req) === true) return true;
+
+  // UTIL TO CHECK THE USER ODIC FROM GOOGLE CONSOLE API ENDPOINT
+  if (result.value === true && isAllowedUsers(req) === true) return true;
+
 
   // console.log("Result: " , result);
 }
@@ -178,15 +203,17 @@ function hasValidHeaders(req) {
 // ======================================================
 
 async function runSecurityCheck(payload) {
+  console.log("Payload: " , payload);
   const req = { 
     method : payload.method,
     device_id : payload.device_id,
     url: payload.originalUrl,
     hostname: payload.hostname,
-    ip : payload.socket,
+    ip : payload.socket.remoteAddress,
     headers : payload.headers
-  
   };
+
+  // console.log("Req. Body : " , req)
 
   const ip = getClientIP(req);
   console.log(`[${ip}] ${req.method} ${req.headers['origin']}`);

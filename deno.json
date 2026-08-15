@@ -7,5 +7,8 @@
   ],
   "allowed_devices" : [
     { "device_id" : "e2fdd680-d0f8-11e3-b146-eb8207c1d3a0" }
-  ] 
+  ],
+  "allowed_oidc_users" : [
+    { "google_user_id" : "112132736290824317846" }
+  ]
 }
