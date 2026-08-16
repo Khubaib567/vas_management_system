@@ -30,13 +30,18 @@ const runDenoScript =  (requestPayload , isWindows) => {
   return new Promise((async (resolve , reject) => {
 
   const rootDir = path.resolve(__dirname, "..");
-  const scriptPath = path.join(rootDir, "/api/proxy.mjs");
+  // const scriptPath = path.join(rootDir, "/api/proxy.mjs");
+  const scriptPath = path.join(rootDir, "api", "proxy.mjs");
 
-   // Allow reading only required files
-  const configPath = [
-    path.join(rootDir, "deno.json"),
-    path.join(rootDir, ".env"),
-  ].join(",");
+  // ✅ Allow reading the entire project (fixes the permission error)
+  // You can make this more strict later if needed
+  const allowRead = rootDir;
+
+  // Allow reading only required files
+  // const configPath = [
+  //   path.join(rootDir, "deno.json"),
+  //   path.join(rootDir, ".env"),
+  // ].join(",");
 
 
   const localDenoPath = path.join(rootDir, "bin", "deno.exe");
@@ -48,7 +53,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
       // "--watch",
       "--allow-net",
       "--allow-env",
-      `--allow-read=${configPath}`,
+      `--allow-read=${allowRead}`,
       "--allow-write",
       "--unstable-kv",
       scriptPath,

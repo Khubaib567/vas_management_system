@@ -1,8 +1,11 @@
-const crypto = require('crypto');
+// const crypto = require('crypto');
+import crypto from 'node:crypto';
+import { config } from 'dotenv';
+
 
 // CONFIG ENVIRONMENT VARIABLES.
 if(process.env.ENV !== "production"){
-  require('dotenv').config({path : './.secrets/.env'})
+  config({path : './.secrets/.env'})
 }
 
 /**
@@ -16,7 +19,7 @@ if(process.env.ENV !== "production"){
  * @returns {any} The original plaintext data (string, object, number, etc.).
  */
 
-const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
+export const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
     
     // console.log("Secret_Key: " , process.env.SECRET_KEY);
     const key = Buffer.from(process.env.SECRET_KEY, 'hex');
@@ -43,6 +46,6 @@ const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
 
 
 // Export using CommonJS syntax
-module.exports = {
-    decryptWithRandomIV
-};
+// module.exports = {
+//     decryptWithRandomIV
+// };

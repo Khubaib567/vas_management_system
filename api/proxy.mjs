@@ -5,7 +5,7 @@
 const EXPECTED_ACTION = "runSecurityCheck";
 const configText = await Deno.readTextFile("./deno.json");
 const securityConfig = JSON.parse(configText);
-const decryptWithRandomIV = require("../utils/decrypt.authtag.js")
+import { decryptWithRandomIV } from "../utils/decrypt.authtag.mjs"
 
 // ======================================================
 // CONFIG
@@ -109,7 +109,9 @@ function isAllowedDevice(req) {
 async function isAllowedUsers(body) {
 
   // STEP 01 : NEEDS TO IMPORT THE DECRIPT AUTH TAG.
+  const { decryptWithRandomIV } = decryptObj;
   const actualBody = await decryptWithRandomIV(body);
+  console.log("Actual Body: " , actualBody);
 
   // STEP 02 : NEEDS TO VERIFIED FROM OUR KV DATABASE.
   const device_id = actualBody.sub;
@@ -129,7 +131,6 @@ async function isAllowedIP(ip , req) {
 
   // UTIL TO CHECK THE USER ODIC FROM GOOGLE CONSOLE API ENDPOINT
   if (result.value === true && isAllowedUsers(req) === true) return true;
-
 
   // console.log("Result: " , result);
 }
@@ -206,7 +207,7 @@ async function runSecurityCheck(payload) {
   console.log("Payload: " , payload);
   const req = { 
     method : payload.method,
-    device_id : payload.device_id,
+    // device_id : payload.device_id,   // DISABLE ON TEMPARRORY BASIS
     url: payload.originalUrl,
     hostname: payload.hostname,
     ip : payload.socket.remoteAddress,
