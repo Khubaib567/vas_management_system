@@ -6,6 +6,8 @@ const { decryptWithRandomIV } = require('./decrypt.authtag.mjs');
  module.exports = getNodeID = async(encrptedData) => {
   try {
 
+    console.log("Encrypted Data: " , encrptedData);
+
     // FOR SERVER SIDE REQUEST.
     if (encrptedData.encryptedBundle) {
       // Fetches native system UUIDs
@@ -17,7 +19,7 @@ const { decryptWithRandomIV } = require('./decrypt.authtag.mjs');
     }
 
     // FOR CLIENT SIDE REQUEST.
-    if (encrptedData) {
+    if (encrptedData.authtag) {
       // Fetches native system UUIDs
       // const data = await si.uuid();
       const data = await decryptWithRandomIV(encrptedData);

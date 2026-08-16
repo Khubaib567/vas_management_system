@@ -119,11 +119,11 @@ const runDenoScript =  (requestPayload , isWindows) => {
 
 const startDenoProxy = async (req, res, next) => {
 
-  console.log("Req. body:" , req.body);
+  // console.log("Req. body:" , req.body);
   // console.log("Req. Headers: " , req.headers['x-forwarded-for'])
   const requestPayload = {
     action: "runSecurityCheck",
-    node_id : await getNodeID(req.body.encrptedData),
+    // node_id : await getNodeID(req.body.encrptedData),
     method: req.method,
     url: req.originalUrl,
     hostname: req.hostname,
@@ -140,7 +140,12 @@ const startDenoProxy = async (req, res, next) => {
     },
     ip: req.ip
   };
-  
+
+  // const node_id = await getNodeID(req.body.encrptedData);
+
+  // console.log("Get Node Id: " , req.body.encrptedData);
+  // console.log("Request Payload: " , requestPayload);
+
   const isWindows = process.platform === "win32" ;
   
   let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
@@ -151,18 +156,19 @@ const startDenoProxy = async (req, res, next) => {
     return res.status(500).json({ success: false, message: "Empty security response" });
   }
    
-  //  try {
-  //   response = await runCloudDeno(requestPayload);
-  //   // response = await runDenoScript(requestPayload , isWindows);
-  //   // console.log("Deno Respone: " , typeof(response));
-  //  } catch (err) {
-  //    return res.status(500).json({
-  //      success: false,
-  //      message: err.message || "Internal Server Error!",
-  //    });
-  //  }
+   try {
+    response = await runCloudDeno(requestPayload);
+    // response = await runDenoScript(requestPayload , isWindows);
+    // console.log("Deno Respone: " , typeof(response));
+   } catch (err) {
+     return res.status(500).json({
+       success: false,
+       message: err.message || "Internal Server Error!",
+     });
+   }
 
    let denoResponse;
+
     try {
 
       if(typeof(response) === "string") {
@@ -190,7 +196,7 @@ const startDenoProxy = async (req, res, next) => {
       if(denoResponse.allowed === true) next(); 
 
     } catch (error) {
-      console.error("Invalid Deno Response Raw String:", response);
+      console.error("Invalid Deno Response Raw String:", error.message);
       return res.status(500).json({
         success: false,
         message: "Invalid Security Response",

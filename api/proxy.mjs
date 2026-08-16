@@ -79,6 +79,8 @@ const kv = await Deno.openKv();
 // Seed allowed IPs
 await kv.set(["allowed_ips", "127.0.0.1"], true);
 await kv.set(["allowed_ips", "192.168.1.10"], true);
+await kv.set(["allowed_ips", "::ffff:127.0.0.1"], true);
+
 
 // console.log("Deno KV: " , kv);
 
@@ -109,7 +111,6 @@ function isAllowedDevice(req) {
 async function isAllowedUsers(body) {
 
   // STEP 01 : NEEDS TO IMPORT THE DECRIPT AUTH TAG.
-  const { decryptWithRandomIV } = decryptObj;
   const actualBody = await decryptWithRandomIV(body);
   console.log("Actual Body: " , actualBody);
 
@@ -123,16 +124,19 @@ async function isAllowedUsers(body) {
 }
 
 async function isAllowedIP(ip , req) {
-  // console.log("IP: " , ip);
+  // console.log("ip: " , ip);
   const result = await kv.get(["allowed_ips", ip]);
+
+  // console.log("Result Value: " , result);
   
   // UTIL TO CHECK THE DEVICE ID FOR SERVER SIDE REDIRECTING
-  if (result.value === true && isAllowedDevice(req) === true) return true;
+  // if (result.value === true && isAllowedDevice(req) === true) return true;
 
   // UTIL TO CHECK THE USER ODIC FROM GOOGLE CONSOLE API ENDPOINT
-  if (result.value === true && isAllowedUsers(req) === true) return true;
+  // if (result.value === true && isAllowedUsers(req) === true) return true;
 
   // console.log("Result: " , result);
+  return result;
 }
 
 function hasValidOrigin(req) {

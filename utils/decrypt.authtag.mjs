@@ -19,17 +19,19 @@ if(process.env.ENV !== "production"){
  * @returns {any} The original plaintext data (string, object, number, etc.).
  */
 
-export const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
+export const decryptWithRandomIV = ( userPayload ) => {
     
-    // console.log("Secret_Key: " , process.env.SECRET_KEY);
+    console.log("Secret_Key: " , userPayload);
     const key = Buffer.from(process.env.SECRET_KEY, 'hex');
 
-    const iv_v4 = Buffer.from(iv, 'hex');
-    const authtag_v4 = Buffer.from(authTag, 'hex');
-    const ciphertext_v4 = Buffer.from(ciphertext, 'hex');
+    const iv_v4 = Buffer.from(userPayload.iv, 'hex');
+    const authtag_v4 = Buffer.from(userPayload.authTag, 'hex');
+    const ciphertext_v4 = Buffer.from(userPayload.ciphertext, 'hex');
 
     // Create decipher
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv_v4);
+
+    // console.log("Decipher: " , decipher);
 
     // Set the auth tag *before* finalizing
     decipher.setAuthTag(authtag_v4);
@@ -39,6 +41,8 @@ export const decryptWithRandomIV = ({ iv, ciphertext, authTag }) => {
         decipher.update(ciphertext_v4),
         decipher.final()
     ]);
+
+    // console.log("Decrypt Data: " , decrypted);
 
     return decrypted.toString('utf8');
 
