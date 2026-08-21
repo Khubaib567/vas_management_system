@@ -6,6 +6,8 @@ if(process.env.ENV !== "production"){
 
 const { spawn } = require("child_process");
 const path = require("path");
+const http = require('http');
+const https = require('https');
 const axios = require("axios");
 const getNodeID = require("../utils/device.identifier");
 const { type } = require('os');
@@ -18,7 +20,13 @@ const runCloudDeno = async (requestPayload) => {
   // console.log("Deno Production URL: " , process.env.DENO_PRODUCTION_URL)
   // console.log("Request. Payload: " , requestPayload);
   try {
-    const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
+    // Apply them in the request config
+    const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL, {
+      ...requestPayload,          // keep your existing config
+      httpAgent,                  // used for http://
+      httpsAgent,                 // used for https://
+    });
+    // const proxyAllowed = await axios.get(process.env.DENO_PRODUCTION_URL , requestPayload);
     // console.log("Cloud Response Type : " , typeof(proxyAllowed))
     return proxyAllowed.data;
   } catch (error) {
@@ -149,12 +157,12 @@ const startDenoProxy = async (req, res, next) => {
   // console.log("Request Payload: " , requestPayload);
 
   try {
-  // const isWindows = process.platform === "win32";
-  // let response = isWindows 
-  //   ? await runDenoScript(requestPayload, isWindows) 
-  //   : await runCloudDeno(requestPayload);
+  const isWindows = process.platform === "win32";
+  let response = isWindows 
+    ? await runDenoScript(requestPayload, isWindows) 
+    : await runCloudDeno(requestPayload);
 
-  let response =  await runCloudDeno(requestPayload);
+  // let response =  await runCloudDeno(requestPayload);
   let denoResponse;
   
   console.log("Response: " , response);
