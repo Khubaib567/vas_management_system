@@ -27,49 +27,6 @@ const runCloudDeno = async (requestPayload) => {
 
 }
 
-
-const authenticateUserRequest = async (response) => {
-  
-  console.log("Response Type: " , type(response));
-  let denoResponse;
-
-  try {
-
-      if(typeof(response) === "string") {
-
-      // const jsonStart = response.indexOf("{");
-      // const jsonString = response.slice(jsonStart).trim();
-      // console.log("Response: " , response);
-      denoResponse = JSON.parse(response);
-      }
-
-      if(typeof(response) === "object") {
-        // console.log("Deno Object Body : " , response)
-        denoResponse = response;
-      }
-      
-      // console.log("Deno Respone: " , denoResponse);
-
-      if (denoResponse.allowed === false) {
-        return res.status(denoResponse.status || 403).json({
-          success: false,
-          message: denoResponse.message || "Access Denied"
-        });
-      }
-
-      // ByPass the Request
-      if(denoResponse.allowed === true) next(); 
-
-    } catch (error) {
-      console.error("Invalid Deno Response Raw String:", error.message);
-      return res.status(500).json({
-        success: false,
-        message: "Invalid Security Response",
-      });
-  }
-  
-}
-
 const runDenoScript =  (requestPayload , isWindows) => {
   
   return new Promise((async (resolve , reject) => {
@@ -110,6 +67,7 @@ const runDenoScript =  (requestPayload , isWindows) => {
   );
 
   try {
+    
     const payloadString =  await JSON.stringify(requestPayload);
     console.log("Payload String: " , payloadString)
     denoProcess.stdin.write(payloadString);
@@ -191,11 +149,14 @@ const startDenoProxy = async (req, res, next) => {
   // console.log("Request Payload: " , requestPayload);
 
   try {
-  const isWindows = process.platform === "win32";
-  let response = isWindows 
-    ? await runDenoScript(requestPayload, isWindows) 
-    : await runCloudDeno(requestPayload);
-    
+  // const isWindows = process.platform === "win32";
+  // let response = isWindows 
+  //   ? await runDenoScript(requestPayload, isWindows) 
+  //   : await runCloudDeno(requestPayload);
+
+  let response =  await runCloudDeno(requestPayload);
+  let denoResponse;
+  
   console.log("Response: " , response);
 
    if(typeof(response) === "string") {
