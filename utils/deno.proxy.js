@@ -7,7 +7,9 @@ if(process.env.ENV !== "production"){
 const { spawn } = require("child_process");
 const path = require("path");
 const axios = require("axios");
-const getNodeID = require("../utils/device.identifier")
+const getNodeID = require("../utils/device.identifier");
+const { type } = require('os');
+const { response } = require('express');
 
 let denoProcess = null;
 
@@ -23,6 +25,49 @@ const runCloudDeno = async (requestPayload) => {
     console.error("Error: " , error.message)
   }
 
+}
+
+
+const authenticateUserRequest = async (response) => {
+  
+  console.log("Response Type: " , type(response));
+  let denoResponse;
+
+  try {
+
+      if(typeof(response) === "string") {
+
+      // const jsonStart = response.indexOf("{");
+      // const jsonString = response.slice(jsonStart).trim();
+      // console.log("Response: " , response);
+      denoResponse = JSON.parse(response);
+      }
+
+      if(typeof(response) === "object") {
+        // console.log("Deno Object Body : " , response)
+        denoResponse = response;
+      }
+      
+      // console.log("Deno Respone: " , denoResponse);
+
+      if (denoResponse.allowed === false) {
+        return res.status(denoResponse.status || 403).json({
+          success: false,
+          message: denoResponse.message || "Access Denied"
+        });
+      }
+
+      // ByPass the Request
+      if(denoResponse.allowed === true) next(); 
+
+    } catch (error) {
+      console.error("Invalid Deno Response Raw String:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Invalid Security Response",
+      });
+  }
+  
 }
 
 const runDenoScript =  (requestPayload , isWindows) => {
@@ -42,7 +87,6 @@ const runDenoScript =  (requestPayload , isWindows) => {
   //   path.join(rootDir, "deno.json"),
   //   path.join(rootDir, ".env"),
   // ].join(",");
-
 
   const localDenoPath = path.join(rootDir, "bin", "deno.exe");
 
@@ -146,63 +190,48 @@ const startDenoProxy = async (req, res, next) => {
   // console.log("Get Node Id: " , req.body.encrptedData);
   // console.log("Request Payload: " , requestPayload);
 
-  const isWindows = process.platform === "win32" ;
-  
-  let response = isWindows ? await runDenoScript(requestPayload , isWindows) : await runCloudDeno(requestPayload);
-  // let response =  await runCloudDeno(requestPayload);
+  try {
+  const isWindows = process.platform === "win32";
+  let response = isWindows 
+    ? await runDenoScript(requestPayload, isWindows) 
+    : await runCloudDeno(requestPayload);
+    
+  console.log("Response: " , response);
 
-  // Ensure response exists before parsing
-  if (!response) {
-    return res.status(500).json({ success: false, message: "Empty security response" });
+   if(typeof(response) === "string") {
+
+    const jsonStart = response.indexOf("{");
+    const jsonString = response.slice(jsonStart).trim();
+    // console.log("Response: " , response);
+    denoResponse = JSON.parse(jsonString);
   }
-   
-   try {
-    response = await runCloudDeno(requestPayload);
-    // response = await runDenoScript(requestPayload , isWindows);
-    // console.log("Deno Respone: " , typeof(response));
-   } catch (err) {
-     return res.status(500).json({
-       success: false,
-       message: err.message || "Internal Server Error!",
-     });
-   }
 
-   let denoResponse;
-
-    try {
-
-      if(typeof(response) === "string") {
-        const jsonStart = response.indexOf("{");
-        const jsonString = response.slice(jsonStart).trim();
-        denoResponse = JSON.parse(jsonString);
-      }
-
-
-      if(typeof(response) === "object") {
-        // console.log("Deno Object Body : " , response)
-        denoResponse = response;
-      }
+  if(typeof(response) === "object") {
+    // console.log("Deno Object Body : " , response)
+    denoResponse = response;
+  }
       
-      console.log("Deno Respone: " , denoResponse);
+  // console.log("Deno Respone: " , denoResponse);
 
-      if (denoResponse.allowed === false) {
-        return res.status(denoResponse.status || 403).json({
-          success: false,
-          message: denoResponse.message || "Access Denied"
-        });
-      }
-
-      // ByPass the Request
-      if(denoResponse.allowed === true) next(); 
-
-    } catch (error) {
-      console.error("Invalid Deno Response Raw String:", error.message);
-      return res.status(500).json({
-        success: false,
-        message: "Invalid Security Response",
-      });
+  if (denoResponse.allowed === false) {
+    return res.status(denoResponse.status || 403).json({
+      success: false,
+      message: denoResponse.message || "Access Denied"
+    });
   }
-  
+
+  // ByPass the Request
+  if(denoResponse.allowed === true) next(); 
+    
+  // console.log("Response: ", response);
+  } catch (error) {
+    console.error("Execution failed:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "An internal server error occurred.",
+      error: error.message 
+    });
+  }
 
 }
 

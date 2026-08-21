@@ -91,9 +91,8 @@ await kv.set(["allowed_ips", "::ffff:127.0.0.1"], true);
 function getClientIP(req) {
   const forwarded = req.ip;
   console.log("IP: " , forwarded);
-  if (forwarded) forwarded.trim();
-  return forwarded;
-  // if(forwarded === "::1") return "127.0.0.1" || "unknown";
+  const reqForwarded = forwarded.trim();
+  if(reqForwarded === "::1") return "127.0.0.1" || "unknown";
 
 }
 
@@ -208,7 +207,7 @@ function hasValidHeaders(req) {
 // ======================================================
 
 async function runSecurityCheck(payload) {
-  console.log("Payload: " , payload);
+  // console.log("Payload: " , payload);
   const req = { 
     method : payload.method,
     // device_id : payload.device_id,   // DISABLE ON TEMPARRORY BASIS
@@ -221,7 +220,7 @@ async function runSecurityCheck(payload) {
   // console.log("Req. Body : " , req)
 
   const ip = getClientIP(req);
-  console.log(`[${ip}] ${req.method} ${req.headers['origin']}`);
+  // console.log(`[${ip}] ${req.method} ${req.headers['origin']}`);
 
   // === IP Whitelist ===
   if (!(await isAllowedIP(ip , req))) {
@@ -263,7 +262,7 @@ async function runSecurityCheck(payload) {
 // LISTEN FOR INPUT FROM NODE.JS
 // ======================================================
 
-function processPayload(rawInput) {
+async function processPayload(rawInput) {
   try {
     if (!rawInput) {
       throw new Error("Empty input from Node.js");
@@ -281,9 +280,12 @@ function processPayload(rawInput) {
       Deno.exit(1);
     }
 
-    runSecurityCheck(payload).then(result => {
-      console.log(JSON.stringify(result));
-    });
+     // 1. Await the security check response
+     const response = await runSecurityCheck(payload);
+
+     console.log(JSON.stringify(response));
+  
+    //  return response;
 
   } catch (err) {
     console.error("Parse Error:", err.message);
