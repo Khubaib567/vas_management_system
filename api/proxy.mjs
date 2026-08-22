@@ -8,12 +8,6 @@ const securityConfig = JSON.parse(configText);
 import { decryptWithRandomIV } from "../utils/decrypt.authtag.mjs"
 
 // ======================================================
-// CONFIG
-// ======================================================
-
-const NODE_BACKEND = Deno.env.get("PROXY_LOCALHOST") || "http://127.0.0.1:3000";
-
-// ======================================================
 // SECURITY CONFIGURATION
 // ======================================================
 
@@ -48,7 +42,7 @@ const ALLOWED_HEADERS = [
 const BLOCKED_AGENTS = ["sqlmap", "nikto", "wget", "masscan", "nmap"];
 
 // Restricted agents
-const RESTRICTED_AGENTS = ["curl", "python-requests"];
+const RESTRICTED_AGENTS = ["curl", "python-requests" , "http" , "https"];
 
 // ======================================================
 // DENO PERMISSION API CHECK
@@ -118,7 +112,7 @@ async function isAllowedUsers(body) {
   const verifiedUsers = securityConfig.allowed_oidc_users || [];
   // console.log("Admin Devices: " , adminDevices);
   return verifiedUsers.some(device => 
-    device.google_user_id === google_user_id 
+    device.google_user_id === device_id 
   );
 }
 

@@ -10,8 +10,6 @@ const http = require('http');
 const https = require('https');
 const axios = require("axios");
 // const getNodeID = require("../utils/device.identifier");
-const { type } = require('os');
-const { response } = require('express');
 
 let denoProcess = null;
 
