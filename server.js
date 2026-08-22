@@ -14,7 +14,7 @@ const redis = require("redis");
 const { startDenoProxy } = require("./utils/deno.proxy.js");
 
 // TRUSTED VERCEL & DENO FIREWALL 
-// app.set('trust proxy' , 1)
+app.set('trust proxy' , 1)
 
 // PARSE REQUESTS OF CONTENT-TYPE - APPLICATION/JSON
 app.use(express.json());
