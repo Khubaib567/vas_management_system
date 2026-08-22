@@ -31,15 +31,24 @@ exports.create = async (req, res) => {
   
   try {
 
+    // const db = await db_connector();
+    // console.log('Reqbody: ' , req.body.bodypayload)
+    // // const body = JSON.stringify(req.body)
+
+    // const body = {
+    //     name : req.body.bodypayload.name,
+    //     msisdn : req.body.bodypayload.msisdn,
+    // }
+
+
     const db = await db_connector();
-    console.log('Reqbody: ' , req.body.bodypayload)
+    console.log('Reqbody: ' , req.body)
     // const body = JSON.stringify(req.body)
 
     const body = {
-        name : req.body.bodypayload.name,
-        msisdn : req.body.bodypayload.msisdn,
+        name : req.body.name,
+        msisdn : req.body.msisdn,
     }
-
 
     // console.log('Reqbody: ' , body)
 
