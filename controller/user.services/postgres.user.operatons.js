@@ -2,7 +2,7 @@ const dns = require('dns');
 const {generateToken,removeToken,refreshToken} = require('../../utils/json.token')
 
 
-const createUserFromPostgreSQLdb = async (body , res , db) => {
+const createUserFromPostgreSQLdb = async (body , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
@@ -11,10 +11,15 @@ const createUserFromPostgreSQLdb = async (body , res , db) => {
     // console.log('Name: ' , name)
     // console.log('Msisdn: ' , msisdn)
 
-
     // SAVE USER IN THE DATABASE
 
-    await db.query('INSERT INTO users (name, msisdn , subscription  ) VALUES ($1, $2 , $3  )', [name, msisdn , subscription])
+    const userExist = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn]);
+
+    if(userExist) {
+      return "User Already Exist!";
+    }
+  
+    await db.query('INSERT INTO users (name, msisdn , subscription) VALUES ($1, $2 , $3)', [name, msisdn , subscription])
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
   

@@ -58,11 +58,15 @@ exports.create = async (req, res) => {
     }
 
     if(typeof(db) === "function") {
-      const user = await createUserFromPostgreSQLdb(body , res , db)
+      const response = await createUserFromPostgreSQLdb(body , db)
 
       // await redisClient.publish('channel', user);
 
-      if (!user || Array.isArray(user) && user.length === 0) {
+      if(typeof(response) === "string") {
+        return res.status(409).json({ message: "User already exists" });
+      }
+
+      if (!response || Array.isArray(response) && user.length === 0) {
        return res.status(404).json({ message: "User not found after creation" });
       }
 
