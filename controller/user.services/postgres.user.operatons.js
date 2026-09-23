@@ -1,40 +1,87 @@
 const dns = require('dns');
 const {generateToken,removeToken,refreshToken} = require('../../utils/json.token')
+const { createClient } = require("@supabase/supabase-js");
 
 
-const createUserFromPostgreSQLdb = async (body , db) => {
+// IMPORT THE .ENV VARIABLES IN DEVELOPMENT ENVIRONMENT.
+if(process.env.NODE !=="production"){
+  require('dotenv').config({path: '../../.secrets/.env'})
+}
+
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SECRET_KEY // use service role for server-side
+);
+
+
+const createUserFromPostgreSQLdb = async (res , req , db) => {
     try {
     // USE OBJECT DESTRUCTION FOR EASILY ACCESS REQ BODY PARAMETER.
     
-    const {name , operator = null , subscription = true , msisdn , services = null, role = null } = body;
+    const {name , operator = null , subscription = true , msisdn , services = null, role = null } = req.body;
 
     // console.log('Name: ' , name)
     // console.log('Msisdn: ' , msisdn)
 
     // SAVE USER IN THE DATABASE
 
-    const userExist = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn]);
+    // const userExist = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn]);
+    const { data: userExist, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('msisdn', msisdn)
+      .maybeSingle();
+
+
+    if (checkError) throw checkError;
 
     if(userExist) {
       return "User Already Exist!";
     }
   
-    await db.query('INSERT INTO users (name, msisdn , subscription) VALUES ($1, $2 , $3)', [name, msisdn , subscription])
+    // await db.query('INSERT INTO users (name, msisdn , subscription) VALUES ($1, $2 , $3)', [name, msisdn , subscription])
+    // INSERT NEW USER
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        name,
+        msisdn,
+        subscription,
+        // operator,
+        // services,
+        // role,
+      })
+      .select()
+      .single();
+
+
+    if (insertError) throw insertError;
+
 
     // FETCH THE NEWLY CREATED USER USING FINDONE
-  
-    const user = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    // const user = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
     // console.log("User Id: " , user[0].id)
-
-   
     // GENERATE TOKEN 
-    const token = await generateToken(res, user[0].id);
+    // const token = await generateToken(res, user[0].id);
+    const token = await generateToken(res , newUser.id);
+    
     // console.log("Token: ", token)
     // UPDATE THE USER WITH INSERT THE TOKEN
-    await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
+    // await db.query('UPDATE users SET token = $1 WHERE id =$2' , [token , user[0].id]);
 
-    const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
+    // const updatedUser = await db.query('SELECT * FROM users WHERE msisdn = $1' , [msisdn])
     // console.log('UpdatedUser: ' , updatedUser)
+
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({ token })
+      .eq('id', newUser.id)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
     return updatedUser;
         
     } catch (error) {

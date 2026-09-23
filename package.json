@@ -13,6 +13,8 @@
   "dependencies": {
     "@hono/node-server": "^2.0.4",
     "@neondatabase/serverless": "^1.0.2",
+    "@supabase/server": "^1.8.0",
+    "@supabase/supabase-js": "^2.117.1",
     "axios": "^1.13.0",
     "connect-redis": "^9.0.0",
     "cors": "^2.8.5",
@@ -29,6 +31,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^2.3.3",
     "opossum": "^10.0.0",
+    "postgres": "^3.4.9",
     "rate-limit-redis": "^4.2.3",
     "redis": "^5.9.0",
     "sequelize": "^6.21.4",

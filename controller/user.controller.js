@@ -58,7 +58,7 @@ exports.create = async (req, res) => {
     }
 
     if(typeof(db) === "function") {
-      const response = await createUserFromPostgreSQLdb(body , db)
+      const response = await createUserFromPostgreSQLdb(res , req , db)
 
       // await redisClient.publish('channel', user);
 
@@ -70,7 +70,7 @@ exports.create = async (req, res) => {
        return res.status(404).json({ message: "User not found after creation" });
       }
 
-      res.status(200).send(user);
+      res.status(200).send(response);
     }
        
     if(typeof(db) === "object"){
