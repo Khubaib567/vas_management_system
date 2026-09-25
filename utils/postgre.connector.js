@@ -16,7 +16,7 @@ module.exports = postgreSQLConnector = async () =>{
         // 1. Parse and fix the environment variable string
         // const DATABASE_URL = process.env.POSTRESQL_DATABASE_URL
         const DATABASE_URL = process.env.SUPABASE_DATABASE_URL
-        
+        console.log("DATABASE URL: " , SUPABASE_DATABASE_URL);
 
         // const dbUrl = new URL(DATABASE_URL);
         const sql = postgres(DATABASE_URL)
