@@ -41,7 +41,7 @@ exports.create = async (req, res) => {
     // }
 
 
-    const db = await db_connector();
+    // const db = await db_connector();
     console.log('Reqbody: ' , req.body)
     // const body = JSON.stringify(req.body)
 
@@ -52,35 +52,37 @@ exports.create = async (req, res) => {
 
     // console.log('Reqbody: ' , body)
 
-    if (!body) {
-      res.status(400).send({ message: "Content can not be empty!" });
-      return;
-    }
+    // if (!body) {
+    //   res.status(400).send({ message: "Content can not be empty!" });
+    //   return;
+    // }
 
-    if(typeof(db) === "function") {
-      const response = await createUserFromPostgreSQLdb(res , req , db)
+    // if(typeof(db) === "function") {
+    //   const response = await createUserFromPostgreSQLdb(res , req , db)
 
-      // await redisClient.publish('channel', user);
+    //   // await redisClient.publish('channel', user);
 
-      if(typeof(response) === "string") {
-        return res.status(409).json({ message: "User already exists" });
-      }
+    //   if(typeof(response) === "string") {
+    //     return res.status(409).json({ message: "User already exists" });
+    //   }
 
-      if (!response || Array.isArray(response) && user.length === 0) {
-       return res.status(404).json({ message: "User not found after creation" });
-      }
+    //   if (!response || Array.isArray(response) && user.length === 0) {
+    //    return res.status(404).json({ message: "User not found after creation" });
+    //   }
 
-      res.status(200).send(response);
-    }
+    //   res.status(200).send(response);
+    // }
        
-    if(typeof(db) === "object"){
+    // if(typeof(db) === "object"){
 
-      const user = await createUserFromSqldb(req , res, db)
-      res.status(200).send(user);
+    //   const user = await createUserFromSqldb(req , res, db)
+    //   res.status(200).send(user);
 
-    }
+    // }
 
-    if (typeof(db) === "string") res.status(200).json({message : 'Create Route!'});
+    // if (typeof(db) === "string") res.status(200).json({message : 'Create Route!'});
+
+    res.status(200).json({message : 'Create Route!'})
        
   } catch (err) {
     res.status(500).send({
