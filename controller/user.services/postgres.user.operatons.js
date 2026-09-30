@@ -128,8 +128,19 @@ const getAllUserFromPostgreSQLdb = async (req , db) =>{
 const getUserBasedOnMsisdnFromPostreSQLdb = async (msisdn,db) => {
     try {
         // console.log('msisdn: ' , msisdn)
-        const data = await db.query("SELECT * FROM users WHERE msisdn = $1" , [msisdn])
-        console.log("User Retreived Data: " , data);
+        // const data = await db.query("SELECT * FROM users WHERE msisdn = $1" , [msisdn])
+        const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('msisdn', msisdn)
+        .maybeSingle();
+
+        if (error) {
+          console.error("Supabase Error Details:", error);
+          throw new Error("Error during retrieve the user with msisdn " + msisdn);
+        }
+        
+        // console.log("User Retreived Data: " , data);
         return data;   
         
     } catch (error) {
