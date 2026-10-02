@@ -2,3 +2,5 @@
 .env
 /workflow
 deno.json
+.vercel
+.env*

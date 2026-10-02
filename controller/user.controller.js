@@ -200,9 +200,12 @@ exports.setOTP = async (req,res) =>{
     if(typeof(db) === "function") {
 
       await setOtpBasedOnMsisdnFromPostreSQLdb(msisdn,otp,db);
+      
       res.status(200).send({
-        message : "OTP has updated!"
+            message : 'OTP has updated Successfully!'
       })
+        
+      
     }
 
   } catch (error) {

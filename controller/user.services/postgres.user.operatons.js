@@ -154,8 +154,16 @@ const getUserBasedOnMsisdnFromPostreSQLdb = async (msisdn,db) => {
 const setOtpBasedOnMsisdnFromPostreSQLdb = async (msisdn,otp,db) =>{
   try {
 
-    await db.query('UPDATE users SET otp = $1 WHERE msisdn = $2' , [otp,msisdn])
+    // await db.query('UPDATE users SET otp = $1 WHERE msisdn = $2' , [otp,msisdn])
     
+    await supabase
+    .from('users')
+    .update({ otp })
+    .eq('msisdn', msisdn)
+    .select()
+    .single();
+
+
   } catch (error) {
      throw new Error("Error during update the user's otp with mssidn " + msisdn)
   }
