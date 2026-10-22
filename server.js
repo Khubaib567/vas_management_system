@@ -22,7 +22,8 @@ app.use(express.json());
 // PARSE REQUESTS OF CONTENT-TYPE - APPLICATION/X-WWW-FORM-URLENCODED
 app.use(express.urlencoded({ extended: true }));
 
-// app.use(startDenoProxy);
+// APPLY DENO AS MIDDELWARE
+app.use(startDenoProxy);
 
 // APPLY RATE-LIMIT AS MIDDLEWARE
 app.use(limiter)

@@ -2028,6 +2028,8 @@
       "dependencies": [
         "npm:@hono/node-server@^2.0.4",
         "npm:@neondatabase/serverless@^1.0.2",
+        "npm:@supabase/server@^1.8.0",
+        "npm:@supabase/supabase-js@^2.117.1",
         "npm:axios@^1.13.0",
         "npm:connect-redis@9",
         "npm:cors@^2.8.5",
@@ -2049,6 +2051,7 @@
         "npm:morgan@^1.10.0",
         "npm:mysql2@^2.3.3",
         "npm:opossum@10",
+        "npm:postgres@^3.4.9",
         "npm:rate-limit-redis@^4.2.3",
         "npm:redis@^5.9.0",
         "npm:sequelize@^6.21.4",
